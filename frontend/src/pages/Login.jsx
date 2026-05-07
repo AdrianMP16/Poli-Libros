@@ -1,10 +1,12 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { login, registrar } from '../services/authService';
 
 export default function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [mensaje, setMensaje] = useState('');
+  const navigate = useNavigate();
 
   const manejarSubmit = async (accion) => {
     try {
@@ -15,6 +17,7 @@ export default function LoginForm() {
 
       if (error) throw error;
       setMensaje(accion === 'login' ? 'Sesión iniciada correctamente' : 'Usuario registrado. Revisa confirmación de email si está activada.');
+      navigate('/');
     } catch (error) {
       setMensaje(error.message);
     }
