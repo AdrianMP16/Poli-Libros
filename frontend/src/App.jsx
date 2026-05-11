@@ -1,41 +1,106 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import Login from './pages/Login';
-import Home from './pages/Home';
+import { supabase } from './services/supabaseClient'; // Tu config de Supabase
+
+import Login from './pages/Login.jsx';
+import ProductoForm from './components/ProductoForm.jsx';
+import ProductoList from './components/ProductoList.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
+  const [productos, setProductos] = useState([]);
+  const [cargando, setCargando] = useState(true);
 
+  // 1. GESTIÓN DE SESIÓN (Supabase)
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setUser(JSON.parse(savedUser));
-    }
+    // Verificar sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      setCargando(false);
+    });
+
+    // Escuchar cambios de login/logout
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const login = async (email, password) => {
-    if (email && password) {
-      const userData = { id: 1, name: "Usuario Polilibros", email };
-      setUser(userData);
-      localStorage.setItem('user', JSON.stringify(userData));
-      return true;
+  // 2. CARGAR DATOS (Firebase) - Solo si hay usuario de Supabase
+  useEffect(() => {
+    if (user) {
+      // Escucha en tiempo real la colección de Firebase
+      const unsub = onSnapshot(collection(db, "productos"), (snapshot) => {
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setProductos(docs);
+      });
+      return () => unsub();
+    } else {
+      setProductos([]); // Limpiar lista si no hay usuario
     }
-    return false;
+  }, [user]);
+
+  // 3. ACCIONES DE FIREBASE
+  const crearProducto = async (nuevoProducto) => {
+    await addDoc(collection(db, "productos"), nuevoProducto);
   };
 
-  const logout = () => {
-    setUser(null);
-    localStorage.removeItem('user');
+  const eliminarProducto = async (id) => {
+    await deleteDoc(doc(db, "productos", id));
   };
+
+  const actualizarProducto = async (id, cambios) => {
+    await updateDoc(doc(db, "productos", id), cambios);
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+  };
+
+  if (cargando) return <p>Cargando aplicación...</p>;
 
   return (
+    <div className="app-container">
+      {user && (
+        <nav style={{ padding: '1rem', background: '#f4f4f4', display: 'flex', justifyContent: 'space-between' }}>
+          <span>Sesión iniciada: <strong>{user.email}</strong></span>
+          <button onClick={logout}>Cerrar Sesión</button>
+        </nav>
+      )}
 
-    <Routes>
-      <Route path="/login" element={!user ? <Login onLogin={login} /> : <Navigate to="/" />} />
-      <Route path="/" element={user ? <Home user={user} onLogout={logout} /> : <Navigate to="/login" />} />
-      <Route path="*" element={<Navigate to="/" />} />
-    </Routes>
+      <Routes>
+        <Route 
+          path="/login" 
+          element={!user ? <Login /> : <Navigate to="/" />} 
+        />
 
+        <Route 
+          path="/" 
+          element={
+            user ? (
+              <main style={{ padding: '2rem' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
+                  <ProductoForm onCrear={crearProducto} />
+                  <div>
+                    <h2>Inventario (Firebase)</h2>
+                    <ProductoList 
+                      productos={productos} 
+                      onEliminar={eliminarProducto} 
+                      onActualizar={actualizarProducto} 
+                    />
+                  </div>
+                </div>
+              </main>
+            ) : (
+              <Navigate to="/login" />
+            )
+          } 
+        />
+
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
+    </div>
   );
 }
 
