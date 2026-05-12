@@ -57,3 +57,17 @@ Backend: node index.js.
 
 6. Notas de Seguridad
 El archivo de clave privada de Firebase y las carpetas de dependencias (node_modules) están configurados en el .gitignore raíz para evitar su exposición en repositorios públicos.
+
+7. Capturas del progreso del proyecto:
+
+Login:
+<img width="1600" height="866" alt="7953477f-50a3-40a5-9b43-58d4c3da45fd" src="https://github.com/user-attachments/assets/c2b3a9fd-aee6-4e9c-a8df-71b4c0c6ba6c" />
+
+Panel de control de Supabase
+<img width="1600" height="834" alt="376ec02e-3775-42b6-b922-34139c421dab" src="https://github.com/user-attachments/assets/07c36848-4bbe-4f1f-889d-4e0dad892f85" />
+
+Base de datos en Firebase
+<img width="1600" height="856" alt="7766c86f-a4cb-4b51-a2ae-5906595a9acf" src="https://github.com/user-attachments/assets/e9911115-7aba-4822-ad9f-ed942097cee8" />
+
+Aplicación en funcionamiento
+<img width="1600" height="866" alt="c9434e8e-5e63-4fea-a7db-b4c088742914" src="https://github.com/user-attachments/assets/8a84965e-41d8-43aa-af59-e38f43a94322" />
