@@ -1,3 +1,6 @@
+import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
+import { db } from './services/firestore';
+
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { supabase } from './services/supabaseClient'; // Tu config de Supabase
