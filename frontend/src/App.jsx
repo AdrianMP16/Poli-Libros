@@ -86,7 +86,7 @@ function App() {
         {/* RUTA RAÍZ: Ahora muestra la Landing Page de forma pública */}
         <Route 
           path="/" 
-          element={<Landing productos={productos} user={user} />} 
+          element={<Landing libros={libros} user={user} />} 
         />
 
         {/* LOGIN: Redirige al Dashboard si ya inició sesión */}
