@@ -7,8 +7,8 @@ import { supabase } from './services/supabaseClient';
 
 import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx'; // 1. Importamos la nueva Landing
-import ProductoForm from './components/ProductoForm.jsx';
-import ProductoList from './components/ProductoList.jsx';
+import ProductoForm from './components/LibroCard.jsx';
+import ProductoList from './components/ListaLibros.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
