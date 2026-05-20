@@ -7,8 +7,8 @@ import { supabase } from './services/supabaseClient';
 
 import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx'; // 1. Importamos la nueva Landing
-import ProductoForm from './components/ProductoForm.jsx';
-import ProductoList from './components/ProductoList.jsx';
+import ProductoForm from './components/LibroCard.jsx';
+import ProductoList from './components/ListaLibros.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -86,7 +86,7 @@ function App() {
         {/* RUTA RAÍZ: Ahora muestra la Landing Page de forma pública */}
         <Route 
           path="/" 
-          element={<Landing productos={productos} user={user} />} 
+          element={<Landing libros={libros} user={user} />} 
         />
 
         {/* LOGIN: Redirige al Dashboard si ya inició sesión */}

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Landing({ productos, user }) {
+function Landing({ libros, user }) {
   const navigate = useNavigate();
 
   // Estilos rápidos en línea (puedes pasarlos a CSS después)
@@ -98,22 +98,22 @@ function Landing({ productos, user }) {
         </div>
       </section>
 
-      {/* 3. VISTA PREVIA DE PRODUCTOS (PÚBLICA) */}
+      {/* 3. VISTA PREVIA DE LIBROS (PÚBLICA) */}
       <section style={{ ...styles.section, background: '#f9f9f9', borderRadius: '8px' }}>
         <h2 style={{ textAlign: 'center' }}>Últimos libros publicados</h2>
         <p style={{ textAlign: 'center', color: '#666' }}>Inicia sesión para contactar al vendedor</p>
         
-        {productos.length === 0 ? (
+        {libros.length === 0 ? (
           <p style={{ textAlign: 'center', marginTop: '2rem' }}>No hay libros publicados esta semana. ¡Sé el primero!</p>
         ) : (
           <div style={styles.grid}>
-            {productos.slice(0, 6).map((prod) => (
-              <div key={prod.id} style={styles.card}>
-                <h4 style={{ margin: '0.5rem 0' }}>{prod.nombre || "Libro de Inglés"}</h4>
+            {libros.slice(0, 6).map((libro) => (
+              <div key={libro.id} style={styles.card}>
+                <h4 style={{ margin: '0.5rem 0' }}>{libro.nombre || "Libro de Inglés"}</h4>
                 <p style={{ color: '#0f2027', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                  ${prod.precio || "0.00"}
+                  ${libro.precio || "0.00"}
                 </p>
-                <p style={{ fontSize: '0.9rem', color: '#777' }}>Estado: {prod.estado || "Buen estado"}</p>
+                <p style={{ fontSize: '0.9rem', color: '#777' }}>Estado: {libro.estado || "Buen estado"}</p>
                 <button 
                   style={{ ...styles.btnPrimary, width: '100%', marginTop: '1rem', padding: '0.5rem' }}
                   onClick={() => navigate('/login')}
