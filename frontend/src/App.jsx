@@ -12,7 +12,7 @@ import ProductoList from './components/ProductoList.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [productos, setProductos] = useState([]);
+  const [libros, setLibros] = useState([]);
   const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
@@ -32,12 +32,17 @@ function App() {
 
   // CARGAR DATOS PÚBLICOS (Firebase) - Ahora carga siempre para alimentar la Landing
   useEffect(() => {
-    const unsub = onSnapshot(collection(db, "libros"), (snapshot) => {
-      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setLibros(docs);
-    });
-    return () => unsub();
-  }, []);
+    if (user) {
+      // Escucha en tiempo real la colección de Firebase
+      const unsub = onSnapshot(collection(db, "libros"), (snapshot) => {
+        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setLibros(docs);
+      });
+      return () => unsub();
+    } else {
+      setLibros([]); // Limpiar lista si no hay usuario
+    }
+  }, [user]);
 
   // ACCIONES DE FIREBASE
   const crearProducto = async (nuevoProducto) => {
@@ -102,7 +107,7 @@ function App() {
                   <div>
                     <h2>Mis publicaciones e inventario</h2>
                     <ProductoList 
-                      productos={productos} 
+                      libros={libros} 
                       onEliminar={eliminarProducto} 
                       onActualizar={actualizarProducto} 
                     />
