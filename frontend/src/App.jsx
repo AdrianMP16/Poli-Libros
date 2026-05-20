@@ -11,7 +11,7 @@ import ProductoList from './components/ProductoList.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
-  const [productos, setProductos] = useState([]);
+  const [libros, setLibros] = useState([]);
   const [cargando, setCargando] = useState(true);
 
   // 1. GESTIÓN DE SESIÓN (Supabase)
@@ -34,27 +34,27 @@ function App() {
   useEffect(() => {
     if (user) {
       // Escucha en tiempo real la colección de Firebase
-      const unsub = onSnapshot(collection(db, "productos"), (snapshot) => {
+      const unsub = onSnapshot(collection(db, "libros"), (snapshot) => {
         const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        setProductos(docs);
+        setLibros(docs);
       });
       return () => unsub();
     } else {
-      setProductos([]); // Limpiar lista si no hay usuario
+      setLibros([]); // Limpiar lista si no hay usuario
     }
   }, [user]);
 
   // 3. ACCIONES DE FIREBASE
   const crearProducto = async (nuevoProducto) => {
-    await addDoc(collection(db, "productos"), nuevoProducto);
+    await addDoc(collection(db, "libros"), nuevoProducto);
   };
 
   const eliminarProducto = async (id) => {
-    await deleteDoc(doc(db, "productos", id));
+    await deleteDoc(doc(db, "libros", id));
   };
 
   const actualizarProducto = async (id, cambios) => {
-    await updateDoc(doc(db, "productos", id), cambios);
+    await updateDoc(doc(db, "libros", id), cambios);
   };
 
   const logout = async () => {
@@ -88,7 +88,7 @@ function App() {
                   <div>
                     <h2>Inventario (Firebase)</h2>
                     <ProductoList 
-                      productos={productos} 
+                      libros={libros} 
                       onEliminar={eliminarProducto} 
                       onActualizar={actualizarProducto} 
                     />
