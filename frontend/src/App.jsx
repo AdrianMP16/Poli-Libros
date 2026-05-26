@@ -7,8 +7,7 @@ import { supabase } from './services/supabaseClient';
 
 import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx'; // 1. Importamos la nueva Landing
-import ProductoForm from './components/LibroCard.jsx';
-import ProductoList from './components/ListaLibros.jsx';
+import Dashboard from './pages/Dashboard.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -46,7 +45,10 @@ function App() {
 
   // ACCIONES DE FIREBASE
   const crearProducto = async (nuevoProducto) => {
-    await addDoc(collection(db, "libros"), nuevoProducto);
+    await addDoc(collection(db, "libros"), {
+      ...nuevoProducto,
+      usuario_id: user?.id || ''
+    });
   };
 
   const eliminarProducto = async (id) => {
@@ -66,7 +68,6 @@ function App() {
 
   return (
     <div className="app-container">
-      {/* Barra de navegación superior (Solo si está logueado) */}
       {user && (
         <nav style={{ padding: '1rem', background: '#f4f4f4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <div>
@@ -82,45 +83,38 @@ function App() {
         </nav>
       )}
 
+{/* RUTA RAÍZ: Ahora muestra la Landing Page de forma pública */}
       <Routes>
-        {/* RUTA RAÍZ: Ahora muestra la Landing Page de forma pública */}
         <Route 
           path="/" 
           element={<Landing libros={libros} user={user} />} 
         />
 
-        {/* LOGIN: Redirige al Dashboard si ya inició sesión */}
+
+{/* LOGIN: Redirige al Dashboard si ya inició sesión */}
         <Route 
           path="/login" 
           element={!user ? <Login /> : <Navigate to="/dashboard" />} 
         />
 
-        {/* DASHBOARD PRIVADO: Gestión de inventario (Antes estaba en la raíz) */}
+{/* DASHBOARD PRIVADO: Gestión de inventario (Antes estaba en la raíz) */}
         <Route 
           path="/dashboard" 
           element={
             user ? (
-              <main style={{ padding: '2rem' }}>
-                <h1 style={{ marginBottom: '1.5rem' }}>Panel de Compra-Venta</h1>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 2fr', gap: '2rem' }}>
-                  <ProductoForm onCrear={crearProducto} />
-                  <div>
-                    <h2>Mis publicaciones e inventario</h2>
-                    <ProductoList 
-                      libros={libros} 
-                      onEliminar={eliminarProducto} 
-                      onActualizar={actualizarProducto} 
-                    />
-                  </div>
-                </div>
-              </main>
+              <Dashboard 
+                libros={libros} 
+                onCrear={crearProducto} 
+                onEliminar={eliminarProducto} 
+                onActualizar={actualizarProducto} 
+              />
             ) : (
               <Navigate to="/login" />
             )
           } 
         />
-
-        {/* Redirección por defecto */}
+        
+ {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

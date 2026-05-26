@@ -37,7 +37,9 @@ const LibroCard = ({ libro }) => {
       <div className="libro-info">
         <div className="libro-header">
           <h3 className="libro-titulo">{titulo}</h3>
-          <span className="libro-precio">${precio.toFixed(2)}</span>
+          <span className="libro-precio">
+  ${typeof precio === 'number' ? precio.toFixed(2) : parseFloat(precio) ? parseFloat(precio).toFixed(2) : '0.00'}
+</span>
         </div>
 
         <p className="libro-descripcion">{descripcion}</p>
