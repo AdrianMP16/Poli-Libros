@@ -18,13 +18,14 @@ export default function LoginForm() {
 
   // Estilos en línea para mantener el orden visual
   const styles = {
-    container: { maxWidth: '400px', margin: '4rem auto', padding: '2rem', borderRadius: '10px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', background: '#fff', fontFamily: 'sans-serif' },
+    container: { maxWidth: '400px', margin: '4rem auto', padding: '2rem', borderRadius: '10px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', background: '#fff', fontFamily: 'sans-serif', position: 'relative' },
     title: { color: '#0f2027', marginBottom: '0.5rem', textAlign: 'center' },
     subtitle: { color: '#666', fontSize: '0.9rem', marginBottom: '1.5rem', textAlign: 'center' },
     input: { width: '100%', padding: '0.8rem', marginBottom: '1rem', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' },
     btnPrimary: { width: '100%', padding: '0.8rem', background: '#0f2027', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem' },
     btnLink: { background: 'none', border: 'none', color: '#16a085', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.9rem', display: 'block', margin: '0.5rem auto' },
-    message: { padding: '0.8rem', backgroundColor: '#f4f4f4', borderRadius: '5px', textAlign: 'center', fontSize: '0.9rem', color: '#333', marginTop: '1rem' }
+    message: { padding: '0.8rem', backgroundColor: '#f4f4f4', borderRadius: '5px', textAlign: 'center', fontSize: '0.9rem', color: '#333', marginTop: '1rem' },
+    btnVolverInicio: { background: 'none', border: 'none', color: '#666', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem', marginBottom: '1rem', padding: '0' }
   };
 
   // Limpiar mensajes y campos al cambiar de vista
@@ -93,6 +94,15 @@ export default function LoginForm() {
 
   return (
     <section style={styles.container}>
+      
+      {/* Botón para regresar a la Landing Page pública */}
+      <button 
+        type="button" 
+        onClick={() => navigate('/')} 
+        style={styles.btnVolverInicio}
+      >
+        ⬅ Volver a Inicio
+      </button>
       
       {/* VISTA 1: INICIAR SESIÓN */}
       {vista === 'login' && (

@@ -1,42 +1,90 @@
-import { supabase } from './supabaseClient';
+import { initializeApp } from "firebase/app";
+import { 
+  getAuth, 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  sendPasswordResetEmail,
+  updateProfile,
+  updatePassword
+} from "firebase/auth";
+import { getFirestore, doc, setDoc } from "firebase/firestore";
 
-export async function registrar(email, password, nombre, telefono) {
-  return await supabase.auth.signUp({ 
-    email, 
-    password,
-    options: {
-      data: {
-        nombre_completo: nombre, 
-        telefono: telefono
-      }
+const firebaseConfig = {
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID
+};
+
+const app = initializeApp(firebaseConfig);
+export const auth = getAuth(app);
+const db = getFirestore(app);
+
+export const login = async (email, password) => {
+  try {
+    const userCredential = await signInWithEmailAndPassword(auth, email, password);
+    return { user: userCredential.user, error: null };
+  } catch (error) {
+    return { user: null, error };
+  }
+};
+
+export const registrar = async (email, password, nombre, telefono) => {
+  try {
+    const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+    const user = userCredential.user;
+
+    await updateProfile(user, { displayName: nombre });
+
+    await setDoc(doc(db, "usuarios", user.uid), {
+      nombre: nombre,
+      telefono: telefono,
+      email: email,
+      fecha_registro: new Date()
+    });
+
+    return { user, error: null };
+  } catch (error) {
+    return { user: null, error };
+  }
+};
+
+export const recuperarPassword = async (email) => {
+  try {
+    await sendPasswordResetEmail(auth, email);
+    return { error: null };
+  } catch (error) {
+    return { error };
+  }
+};
+
+export const actualizarDatosPerfil = async (uid, nombre, telefono) => {
+  try {
+    if (auth.currentUser) {
+      await updateProfile(auth.currentUser, { displayName: nombre });
     }
-  });
-}
+    await setDoc(doc(db, "usuarios", uid), {
+      nombre: nombre,
+      telefono: telefono,
+      email: auth.currentUser.email,
+      fecha_actualizacion: new Date()
+    }, { merge: true });
+    return { error: null };
+  } catch (error) {
+    return { error };
+  }
+};
 
-export async function login(email, password) {
-  return await supabase.auth.signInWithPassword({ email, password });
-}
-
-export async function logout() {
-  return await supabase.auth.signOut();
-}
-
-export async function recuperarPassword(email) {
-  return await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: window.location.origin + '/login',
-  });
-}
-
-export async function obtenerSesion() {
-  const { data } = await supabase.auth.getSession();
-  return data.session;
-}
-
-export function escucharSesion(callback) {
-  return supabase.auth.onAuthStateChange((_event, session) => callback(session));
-}
-
-export async function obtenerToken() {
-  const session = await obtenerSesion();
-  return session?.access_token || null;
-}
+export const cambiarContrasenaInterna = async (nuevaContrasena) => {
+  try {
+    if (auth.currentUser) {
+      await updatePassword(auth.currentUser, nuevaContrasena);
+      return { error: null };
+    }
+    throw new Error("No hay un usuario autenticado");
+  } catch (error) {
+    return { error };
+  }
+};

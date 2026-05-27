@@ -3,10 +3,11 @@ import { db } from './services/firestore';
 
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { supabase } from './services/supabaseClient'; 
+import { auth } from './services/authService';
+import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
 
 import Login from './pages/Login.jsx';
-import Landing from './pages/Landing.jsx'; // 1. Importamos la nueva Landing
+import Landing from './pages/Landing.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 
 function App() {
@@ -15,33 +16,26 @@ function App() {
   const [cargando, setCargando] = useState(true);
   const navigate = useNavigate();
 
-  // GESTIÓN DE SESIÓN (Supabase)
+// GESTIÓN DE SESIÓN (Ahora con Firebase Auth)
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+    setUser(firebaseUser);
+    setCargando(false);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+  // CARGAR DATOS PÚBLICOS (Firebase) - Carga siempre de forma pública
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setCargando(false);
+    // Escucha en tiempo real la colección de Firebase sin importar el usuario
+    const unsub = onSnapshot(collection(db, "libros"), (snapshot) => {
+      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+      setLibros(docs);
     });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // CARGAR DATOS PÚBLICOS (Firebase) - Ahora carga siempre para alimentar la Landing
-  useEffect(() => {
-    if (user) {
-      // Escucha en tiempo real la colección de Firebase
-      const unsub = onSnapshot(collection(db, "libros"), (snapshot) => {
-        const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        setLibros(docs);
-      });
-      return () => unsub();
-    } else {
-      setLibros([]); // Limpiar lista si no hay usuario
-    }
-  }, [user]);
+    
+    return () => unsub();
+  }, []); // Quitamos 'user' de las dependencias para que no se reinicie al desloguearse
 
   // ACCIONES DE FIREBASE
   const crearProducto = async (nuevoProducto) => {
@@ -60,9 +54,9 @@ function App() {
   };
 
   const logout = async () => {
-    await supabase.auth.signOut();
-    navigate('/'); // Redirigir a la landing al cerrar sesión
-  };
+  await firebaseSignOut(auth);
+  navigate('/'); 
+};
 
   if (cargando) return <p>Cargando aplicación...</p>;
 
@@ -113,7 +107,7 @@ function App() {
             )
           } 
         />
-        
+
  {/* Redirección por defecto */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
