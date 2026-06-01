@@ -36,46 +36,48 @@ export default function LoginForm() {
     setConfirmPassword('');
   };
 
-  // 1. MANEJAR INICIO DE SESIÓN
+  // 1. MANEJAR INICIO DE SESIÓN (Adaptado al try/catch de Firebase)
   const manejarLogin = async (e) => {
     e.preventDefault();
     try {
       setMensaje('Iniciando sesión...');
-      const { error } = await login(email, password);
-      if (error) throw error;
+      
+      // authService ahora guarda automáticamente el token en localStorage si tiene éxito
+      await login(email, password); 
       
       setMensaje('Sesión iniciada correctamente.');
-      navigate('/dashboard'); // Te manda al panel privado una vez logueado
+      navigate('/dashboard'); 
     } catch (error) {
-      setMensaje('Error: ' + error.message);
+      // Captura el mensaje directo lanzado por el servicio
+      setMensaje(error.message);
     }
   };
 
-  // 2. MANEJAR REGISTRO (CON TUS REQUERIMIENTOS)
+  // 2. MANEJAR REGISTRO (Adaptado al try/catch de Firebase)
   const manejarRegistro = async (e) => {
     e.preventDefault();
     
-    // Validación de contraseñas idénticas
     if (password !== confirmPassword) {
-      setMensaje('❌ Las contraseñas no coinciden.');
+      setMensaje('Las contraseñas no coinciden.');
       return;
     }
 
     try {
       setMensaje('Creando cuenta...');
-      const { error } = await registrar(email, password, nombre, telefono);
-      if (error) throw error;
-
-      alert('¡Registro exitoso! Ya puedes iniciar sesión con tus credenciales.');
       
-      // Limpiamos los campos de registro para seguridad
+      // Llamamos al servicio que registra en Firebase Auth e impacta tu base de datos
+      await registrar(email, password, nombre, telefono);
+
+      alert('¡Registro exitoso! Tu cuenta ha sido creada.');
+      
+      // Limpieza de campos por seguridad
       setNombre('');
       setTelefono('');
+      setEmail('');
       
-      // Te devuelve automáticamente a la página de login
       cambiarVista('login');
     } catch (error) {
-      setMensaje('Error al registrar: ' + error.message);
+      setMensaje(error.message);
     }
   };
 
@@ -84,11 +86,10 @@ export default function LoginForm() {
     e.preventDefault();
     try {
       setMensaje('Enviando correo...');
-      const { error } = await recuperarPassword(email);
-      if (error) throw error;
-      setMensaje('📩 Se ha enviado un enlace de recuperación a tu correo electrónico.');
+      await recuperarPassword(email);
+      setMensaje('Se ha enviado un enlace de recuperación a tu correo electrónico.');
     } catch (error) {
-      setMensaje('Error: ' + error.message);
+      setMensaje(error.message);
     }
   };
 

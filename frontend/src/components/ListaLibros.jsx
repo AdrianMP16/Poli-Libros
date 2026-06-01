@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../services/firestore'; // Asegúrate de que apunte a tu archivo de configuración
+import { db } from '../services/firestore';
 import LibroCard from './LibroCard';
 import '../styles/LibroCard.css'; // Importa los estilos
 

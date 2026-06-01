@@ -4,16 +4,16 @@ import { useNavigate } from 'react-router-dom';
 function Landing({ libros, user }) {
   const navigate = useNavigate();
 
-  // Estilos rápidos en línea (puedes pasarlos a CSS después)
+  // Estilos
   const styles = {
     hero: {
-      background: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)', // Azul politécnico oscuro
+      background: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)', 
       color: '#fff',
       padding: '4rem 2rem',
       textAlign: 'center',
     },
     btnPrimary: {
-      background: '#f1c40f', // Dorado/Amarillo EPN
+      background: '#f1c40f', 
       color: '#0f2027',
       border: 'none',
       padding: '0.8rem 1.5rem',

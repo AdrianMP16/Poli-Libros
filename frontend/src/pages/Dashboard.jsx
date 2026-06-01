@@ -80,10 +80,10 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     setMensajePerfil('');
     
     if (perfilData.nombre.trim().length < 3) {
-      return setMensajePerfil("❌ El nombre debe tener al menos 3 caracteres.");
+      return setMensajePerfil("El nombre debe tener al menos 3 caracteres.");
     }
     if (!/^\d{10}$/.test(perfilData.telefono)) {
-      return setMensajePerfil("❌ El teléfono debe tener exactamente 10 dígitos numéricos.");
+      return setMensajePerfil("El teléfono debe tener exactamente 10 dígitos numéricos.");
     }
 
     const { error } = await actualizarDatosPerfil(auth.currentUser.uid, perfilData.nombre, perfilData.telefono);
@@ -96,10 +96,10 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     setMensajePassword('');
 
     if (passwordData.nueva.length < 6) {
-      return setMensajePassword("❌ La contraseña debe tener al menos 6 caracteres.");
+      return setMensajePassword("La contraseña debe tener al menos 6 caracteres.");
     }
     if (passwordData.nueva !== passwordData.confirmar) {
-      return setMensajePassword("❌ Las contraseñas no coinciden.");
+      return setMensajePassword("Las contraseñas no coinciden.");
     }
 
     const { error } = await cambiarContrasenaInterna(passwordData.nueva);
