@@ -16,29 +16,48 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Middleware para verificar el token de Firebase Auth
-const verificarToken = async (req, res, next) => {
+// Middleware 1: Solo verifica que el usuario esté autenticado (Usuario Común o Admin)
+const verificarAutenticado = async (req, res, next) => {
   const tokenHeader = req.headers.authorization;
-
-  // El token suele venir en formato: "Bearer TEXTO_DEL_TOKEN"
   if (!tokenHeader || !tokenHeader.startsWith("Bearer ")) {
-    return res.status(401).json({ mensaje: "No autorizado. Falta el token." });
+    return res.status(401).json({ mensaje: "Acceso denegado. Regístrate o inicia sesión." });
   }
 
   const token = tokenHeader.split(" ")[1];
-
   try {
-    // Firebase Admin verifica si el token es válido y no ha expirado
     const decodedToken = await admin.auth().verifyIdToken(token);
-    
-    // Inyectamos los datos del usuario en el objeto 'req' para usarlo en las rutas
-    req.user = decodedToken; 
-    
-    next(); // Continuar a la ruta (ej. crear el libro)
+    req.user = decodedToken; // Contiene el uid, email y sus claims personalizados
+    next();
   } catch (error) {
-    return res.status(403).json({ mensaje: "Token inválido o expirado", error: error.message });
+    return res.status(403).json({ mensaje: "Token inválido o expirado." });
   }
 };
+
+// Middleware 2: Verifica estrictamente que el usuario sea ADMINISTRADOR
+const verificarAdmin = async (req, res, next) => {
+  // Primero corremos la verificación del token usando el proceso anterior
+  const tokenHeader = req.headers.authorization;
+  if (!tokenHeader || !tokenHeader.startsWith("Bearer ")) {
+    return res.status(401).json({ mensaje: "No autorizado." });
+  }
+
+  const token = tokenHeader.split(" ")[1];
+  try {
+    const decodedToken = await admin.auth().verifyIdToken(token);
+    
+    // VALIDACIÓN CRUCIAL: Comprobamos si tiene el atributo 'admin' en true
+    if (decodedToken.role === "admin") {
+      req.user = decodedToken;
+      next(); // Es admin, lo dejamos pasar
+    } else {
+      return res.status(403).json({ mensaje: "Acceso denegado. Se requieren permisos de administrador." });
+    }
+  } catch (error) {
+    return res.status(403).json({ mensaje: "Token inválido." });
+  }
+};
+
+
 
 app.get("/", (req, res) => {
   res.send("API funcionando con Firebase");
@@ -80,8 +99,8 @@ app.get("/api/libros/:id", async (req, res) => {
 });
 
 // --- CREAR UN LIBRO ---
-// Añadimos 'verificarToken' antes del handler de la ruta
-app.post("/api/libros", verificarToken, async (req, res) => {
+// Añadimos 'verificarAutenticado' antes del handler de la ruta
+app.post("/api/libros", verificarAutenticado, async (req, res) => {
   try {
     const { titulo, descripcion, estado_fisico, incluye_codigo, nivel, precio, fotos } = req.body;
 
@@ -150,6 +169,33 @@ app.delete("/api/libros/:id", async (req, res) => {
     res.json({ mensaje: "Libro eliminado" });
   } catch (error) {
     res.status(500).json({ mensaje: "Error al eliminar libro", error: error.message });
+  }
+});
+
+app.delete("/api/usuarios/:uid", verificarAdmin, async (req, res) => {
+  try {
+    await admin.auth().deleteUser(req.params.uid);
+    res.json({ mensaje: "Usuario eliminado de Firebase correctamente." });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al eliminar usuario.", error: error.message });
+  }
+});
+
+// RUTA TEMPORAL PARA ASIGNARTE EL ROL DE ADMIN
+// (La puedes borrar o comentar después de usarla)
+app.post("/api/crear-primer-admin", async (req, res) => {
+  const { uid } = req.body;
+
+  if (!uid) {
+    return res.status(400).json({ mensaje: "Falta el UID del usuario" });
+  }
+
+  try {
+    // Inyectamos el atributo personalizado de manera definitiva en Firebase Auth
+    await admin.auth().setCustomUserClaims(uid, { role: "admin" });
+    res.json({ mensaje: `¡Éxito! El usuario con UID ${uid} ahora es oficialmente Administrador.` });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al asignar el rol", error: error.message });
   }
 });
 

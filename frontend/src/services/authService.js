@@ -4,12 +4,11 @@ import {
   createUserWithEmailAndPassword, 
   sendPasswordResetEmail,
   signOut,
-  updatePassword, // Para cambiar la contraseña desde el perfil
-  updateProfile   // Para cambiar el nombre visible en Firebase
+  updatePassword, 
+  updateProfile   
 } from "firebase/auth";
 import { app } from "./firestore"; 
 
-// Exportamos 'auth' directamente para que Dashboard.jsx pueda leer 'auth.currentUser'
 export const auth = getAuth(app);
 const API_URL = "http://localhost:3000/api";
 
@@ -18,9 +17,15 @@ export const login = async (email, password) => {
   try {
     const userCredential = await signInWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
-    const token = await user.getIdToken();
-    localStorage.setItem("token", token);
-    return { user, token };
+    
+    // Extraemos los claims del token para verificar el rol
+    const tokenResult = await user.getIdTokenResult();
+    const rol = tokenResult.claims.role || "comun"; 
+
+    localStorage.setItem("token", tokenResult.token);
+    localStorage.setItem("rol", rol); 
+
+    return { user, token: tokenResult.token, rol };
   } catch (error) {
     throw new Error(error.message);
   }
@@ -32,13 +37,12 @@ export const registrar = async (email, password, nombre, telefono) => {
     const userCredential = await createUserWithEmailAndPassword(auth, email, password);
     const user = userCredential.user;
     
-    // Guardamos el nombre en el perfil nativo de Firebase Auth
     await updateProfile(user, { displayName: nombre });
     
     const token = await user.getIdToken();
     localStorage.setItem("token", token);
+    localStorage.setItem("rol", "comun"); // Por defecto, todo registro nuevo es común
 
-    // Guardar datos extra como el teléfono en tu backend remoto
     try {
       await fetch(`${API_URL}/usuarios`, {
         method: "POST",
@@ -72,19 +76,17 @@ export const recuperarPassword = async (email) => {
 export const cerrarSesion = async () => {
   await signOut(auth);
   localStorage.removeItem("token");
+  localStorage.removeItem("rol");
 };
 
-// 5. ACTUALIZAR DATOS DEL PERFIL (Faltante para el Dashboard)
+// 5. ACTUALIZAR DATOS DEL PERFIL
 export const actualizarDatosPerfil = async (uid, nombre, telefono) => {
   try {
     const token = await auth.currentUser.getIdToken();
-    
-    // Actualizamos el nombre en el Auth de Firebase Client
     await updateProfile(auth.currentUser, { displayName: nombre });
 
-    // Mandamos los datos actualizados a tu backend para sincronizar Firestore de forma segura
     const respuesta = await fetch(`${API_URL}/usuarios/${uid}`, {
-      method: "PUT", // o PATCH dependiendo de tu backend
+      method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
@@ -103,13 +105,12 @@ export const actualizarDatosPerfil = async (uid, nombre, telefono) => {
   }
 };
 
-// 6. CAMBIAR CONTRASEÑA INTERNA (Faltante para el Dashboard)
+// 6. CAMBIAR CONTRASEÑA INTERNA
 export const cambiarContrasenaInterna = async (nuevaContrasena) => {
   try {
     const usuario = auth.currentUser;
     if (!usuario) throw new Error("No hay un usuario autenticado");
 
-    // Método nativo directo del cliente de Firebase para cambiar credenciales
     await updatePassword(usuario, nuevaContrasena);
     return { exito: true };
   } catch (error) {
