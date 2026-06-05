@@ -1,19 +1,19 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 
-function Landing({ libros, user }) {
+function Landing({ libros = [], user }) {
   const navigate = useNavigate();
 
   // Estilos
   const styles = {
     hero: {
-      background: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)', 
+      background: 'linear-gradient(135deg, #0f2027, #203a43, #2c5364)',
       color: '#fff',
       padding: '4rem 2rem',
       textAlign: 'center',
     },
     btnPrimary: {
-      background: '#f1c40f', 
+      background: '#f1c40f',
       color: '#0f2027',
       border: 'none',
       padding: '0.8rem 1.5rem',
@@ -102,19 +102,23 @@ function Landing({ libros, user }) {
       <section style={{ ...styles.section, background: '#f9f9f9', borderRadius: '8px' }}>
         <h2 style={{ textAlign: 'center' }}>Últimos libros publicados</h2>
         <p style={{ textAlign: 'center', color: '#666' }}>Inicia sesión para contactar al vendedor</p>
-        
+
         {libros.length === 0 ? (
           <p style={{ textAlign: 'center', marginTop: '2rem' }}>No hay libros publicados esta semana. ¡Sé el primero!</p>
         ) : (
           <div style={styles.grid}>
             {libros.slice(0, 6).map((prod) => (
-              <div key={prod.id} style={styles.card}>
-                <h4 style={{ margin: '0.5rem 0' }}>{prod.nombre || "Libro de Inglés"}</h4>
+              <div key={prod.id_firestore || prod.id} style={styles.card}>
+                {/* 🌟 Cambiamos prod.nombre por prod.titulo */}
+                <h4 style={{ margin: '0.5rem 0' }}>{prod.titulo || "Libro sin título"}</h4>
+
                 <p style={{ color: '#0f2027', fontWeight: 'bold', fontSize: '1.2rem' }}>
-                  ${prod.precio || "0.00"}
+                  ${typeof prod.precio === 'number' ? prod.precio.toFixed(2) : parseFloat(prod.precio) ? parseFloat(prod.precio).toFixed(2) : '0.00'}
                 </p>
-                <p style={{ fontSize: '0.9rem', color: '#777' }}>Estado: {prod.estado || "Buen estado"}</p>
-                <button 
+
+                <p style={{ fontSize: '0.9rem', color: '#777' }}>Estado: {prod.estado || "No especificado"}</p>
+
+                <button
                   style={{ ...styles.btnPrimary, width: '100%', marginTop: '1rem', padding: '0.5rem' }}
                   onClick={() => navigate('/login')}
                 >

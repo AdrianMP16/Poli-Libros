@@ -1,17 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import ListaLibros from '../components/ListaLibros';
 import { auth, actualizarDatosPerfil, cambiarContrasenaInterna } from '../services/authService';
-import { getFirestore, doc, getDoc } from 'firebase/firestore';
+import { getFirestore, doc, getDoc, collection, query, where, onSnapshot } from 'firebase/firestore';
 
 const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   const [pestana, setPestana] = useState('ventas');
   const db = getFirestore();
-  
-  // Roles de usuario del localStorage
-  const [rolUsuario] = useState(localStorage.getItem('rol') || 'comun');
-  const [usuarios, setUsuarios] = useState([]);
-  const [busqueda, setBusqueda] = useState('');
-  const [mensajeAdmin, setMensajeAdmin] = useState('');
+
 
   const [formData, setFormData] = useState({
     titulo: '',
@@ -25,9 +20,12 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
   const [perfilData, setPerfilData] = useState({ nombre: auth.currentUser?.displayName || '', telefono: '' });
   const [passwordData, setPasswordData] = useState({ nueva: '', confirmar: '' });
+  const [misReportes, setMisReportes] = useState([]);
+
+
   const [mensajePerfil, setMensajePerfil] = useState('');
   const [mensajePassword, setMensajePassword] = useState('');
-  
+
   const [verPasswordNueva, setVerPasswordNueva] = useState(false);
   const [verPasswordConfirmar, setVerPasswordConfirmar] = useState(false);
 
@@ -51,28 +49,19 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     cargarDatosExtras();
   }, [pestana, db]);
 
-  // Hook para cargar usuarios en caso de ser Administrador
   useEffect(() => {
-    const cargarUsuariosAPI = async () => {
-      if (rolUsuario === 'admin' && pestana === 'usuarios') {
-        try {
-          const token = localStorage.getItem('token');
-          const respuesta = await fetch("http://localhost:3000/api/usuarios", {
-            headers: { "Authorization": `Bearer ${token}` }
-          });
-          const datos = await respuesta.json();
-          if (respuesta.ok) {
-            setUsuarios(datos);
-          } else {
-            setMensajeAdmin("No se pudieron cargar los usuarios.");
-          }
-        } catch (error) {
-          console.error("Error conectando al backend:", error);
-        }
-      }
-    };
-    cargarUsuariosAPI();
-  }, [pestana, rolUsuario]);
+    if (pestana === 'notificaciones' && auth.currentUser) {
+      const q = query(
+        collection(db, "reports"),
+        where("reportedBy", "==", auth.currentUser.uid),
+        where("status", "==", "resolved_ban")
+      );
+      const unsubscribe = onSnapshot(q, (snapshot) => {
+        setMisReportes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
+      });
+      return () => unsubscribe();
+    }
+  }, [pestana, db]);
 
   const handleSubmitLibro = (e) => {
     e.preventDefault();
@@ -123,30 +112,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     }
   };
 
-  const handleEliminarUsuario = async (uid) => {
-    if (!window.confirm("¿Estás seguro de eliminar este usuario?")) return;
-    try {
-      const token = localStorage.getItem('token');
-      const respuesta = await fetch(`http://localhost:3000/api/usuarios/${uid}`, {
-        method: "DELETE",
-        headers: { "Authorization": `Bearer ${token}` }
-      });
-      const resData = await respuesta.json();
-      if (respuesta.ok) {
-        setMensajeAdmin("✅ Usuario eliminado exitosamente.");
-        setUsuarios(usuarios.filter(u => u.uid !== uid));
-      } else {
-        setMensajeAdmin("❌ Error: " + resData.mensaje);
-      }
-    } catch (error) {
-      setMensajeAdmin("❌ Error de comunicación con el backend.");
-    }
-  };
-
-  const usuariosFiltrados = usuarios.filter(u => 
-    u.nombre?.toLowerCase().includes(busqueda.toLowerCase()) ||
-    u.email?.toLowerCase().includes(busqueda.toLowerCase())
-  );
 
   return (
     <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem', fontFamily: 'sans-serif' }}>
@@ -157,12 +122,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
       <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #ccc', paddingBottom: '10px' }}>
         <button onClick={() => setPestana('ventas')} style={{ padding: '10px', background: pestana === 'ventas' ? '#0f2027' : '#eee', color: pestana === 'ventas' ? '#fff' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Mis Publicaciones</button>
         <button onClick={() => setPestana('perfil')} style={{ padding: '10px', background: pestana === 'perfil' ? '#0f2027' : '#eee', color: pestana === 'perfil' ? '#fff' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Mi Perfil</button>
-        
-        {rolUsuario === 'admin' && (
-          <button onClick={() => setPestana('usuarios')} style={{ padding: '10px', background: pestana === 'usuarios' ? '#dc3545' : '#eee', color: pestana === 'usuarios' ? '#fff' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
-            ⚙️ Control de Usuarios
-          </button>
-        )}
       </div>
 
       {/* CONTENIDO DE PESTAÑAS */}
@@ -174,7 +133,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
               <input type="text" placeholder="Título del libro" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
               <textarea placeholder="Descripción (estado, edición, etc.)" value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px' }} />
               <input type="number" step="0.01" placeholder="Precio ($)" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-              
+
               <select value={formData.nivel} onChange={(e) => setFormData({ ...formData, nivel: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }}>
                 <option value="Nivel 1">Nivel 1 (Primeros Semestres)</option>
                 <option value="Nivel 2">Nivel 2 (Semestres Medios)</option>
@@ -242,50 +201,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
               <button type="submit" style={{ padding: '10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', marginTop: '5px' }}>Cambiar Contraseña</button>
               {mensajePassword && <p style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>{mensajePassword}</p>}
             </form>
-          </div>
-        </div>
-      )}
-
-      {pestana === 'usuarios' && rolUsuario === 'admin' && (
-        <div style={{ background: '#222', color: '#fff', padding: '2rem', borderRadius: '8px' }}>
-          <h3>Control de Usuarios Registrados</h3>
-          <input 
-            type="text" 
-            placeholder="🔍 Buscar por nombre o correo institucional..." 
-            value={busqueda}
-            onChange={(e) => setBusqueda(e.target.value)}
-            style={{ width: '100%', padding: '10px', marginBottom: '20px', borderRadius: '4px', border: '1px solid #444', background: '#333', color: '#fff', boxSizing: 'border-box' }}
-          />
-          {mensajeAdmin && <p style={{ padding: '10px', background: '#444', borderRadius: '4px', textAlign: 'center' }}>{mensajeAdmin}</p>}
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead>
-                <tr style={{ borderBottom: '2px solid #444', color: '#16a085' }}>
-                  <th style={{ padding: '10px' }}>Nombre</th>
-                  <th style={{ padding: '10px' }}>Correo</th>
-                  <th style={{ padding: '10px' }}>Teléfono</th>
-                  <th style={{ padding: '10px' }}>Acción</th>
-                </tr>
-              </thead>
-              <tbody>
-                {usuariosFiltrados.length > 0 ? (
-                  usuariosFiltrados.map((u) => (
-                    <tr key={u.uid} style={{ borderBottom: '1px solid #333' }}>
-                      <td style={{ padding: '10px' }}>{u.nombre}</td>
-                      <td style={{ padding: '10px' }}>{u.email}</td>
-                      <td style={{ padding: '10px' }}>{u.telefono || 'N/A'}</td>
-                      <td style={{ padding: '10px' }}>
-                        <button onClick={() => handleEliminarUsuario(u.uid)} style={{ background: '#dc3545', color: '#fff', border: 'none', padding: '6px 12px', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>Eliminar Cuenta</button>
-                      </td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan="4" style={{ padding: '20px', textAlign: 'center', color: '#aaa' }}>No se encontraron coincidencias.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
         </div>
       )}

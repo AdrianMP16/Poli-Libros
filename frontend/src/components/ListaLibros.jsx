@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { collection, getDocs, query, orderBy } from 'firebase/firestore';
-import { db } from '../services/firestore';
 import LibroCard from './LibroCard';
-import '../styles/LibroCard.css'; // Importa los estilos
+import '../styles/LibroCard.css'; 
 
 const ListaLibros = () => {
   const [libros, setLibros] = useState([]);
@@ -11,19 +9,14 @@ const ListaLibros = () => {
   useEffect(() => {
     const obtenerLibros = async () => {
       try {
-        // Hacemos una query ordenada por los más recientes primero
-        const q = query(collection(db, 'libros'), orderBy('fecha_publicacion', 'desc'));
-        const querySnapshot = await getDocs(q);
+        // Consumimos tu backend estructurado en Express
+        const res = await fetch('http://localhost:3000/api/libros');
+        if (!res.ok) throw new Error("Error en la respuesta del servidor");
         
-        const listaTemporal = [];
-        querySnapshot.forEach((doc) => {
-          // Guardamos los datos del documento y el ID de Firestore
-          listaTemporal.push({ id: doc.id, ...doc.data() });
-        });
-        
-        setLibros(listaTemporal);
+        const datos = await res.json();
+        setLibros(datos);
       } catch (error) {
-        console.error("Error al traer los libros de Firestore:", error);
+        console.error("Error al traer los libros del backend:", error);
       } finally {
         setCargando(false);
       }
@@ -41,14 +34,14 @@ const ListaLibros = () => {
       {libros.length === 0 ? (
         <p>No hay libros publicados en este momento.</p>
       ) : (
-        /* Grid responsivo para las tarjetas */
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
           gap: '24px'
         }}>
           {libros.map((libro) => (
-            <LibroCard key={libro.id} libro={libro} />
+            /* Pasamos el id_firestore o id según cómo venga mapeado del backend */
+            <LibroCard key={libro.id_firestore || libro.id} libro={libro} />
           ))}
         </div>
       )}

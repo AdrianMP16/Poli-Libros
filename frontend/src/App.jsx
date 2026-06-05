@@ -1,114 +1,109 @@
-import { collection, onSnapshot, addDoc, deleteDoc, doc, updateDoc } from "firebase/firestore";
-import { db } from './services/firestore';
-
 import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { auth } from './services/authService';
-import { onAuthStateChanged, signOut as firebaseSignOut } from 'firebase/auth';
+import { onAuthStateChanged } from 'firebase/auth';
 
 import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx';
 import Dashboard from './pages/Dashboard.jsx';
+import AdminDashboard from './pages/AdminDashboard.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
+
+  //auth.signOut();  //Activar en caso de emergencia para cerrar sesión de forma segura y rápida a todos los usuarios (útil durante desarrollo o pruebas de roles)
+
+  const [esAdmin, setEsAdmin] = useState(false); 
   const [libros, setLibros] = useState([]);
   const [cargando, setCargando] = useState(true);
-  const navigate = useNavigate();
 
-// GESTIÓN DE SESIÓN (Ahora con Firebase Auth)
-useEffect(() => {
-  const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
-    setUser(firebaseUser);
-    setCargando(false);
-  });
-
-  return () => unsubscribe();
-}, []);
-
-  // CARGAR DATOS PÚBLICOS (Firebase) - Carga siempre de forma pública
+  // 1. GESTIÓN DE SESIÓN Y ROLES (SEGURO)
   useEffect(() => {
-    // Escucha en tiempo real la colección de Firebase sin importar el usuario
-    const unsub = onSnapshot(collection(db, "libros"), (snapshot) => {
-      const docs = snapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setLibros(docs);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        setUser(firebaseUser);
+        try {
+          // 🛡️ Solo pedimos el token si 'firebaseUser' NO es null
+          const tokenResult = await firebaseUser.getIdTokenResult();
+          if (tokenResult.claims.admin === true) {
+            setEsAdmin(true);
+          } else {
+            setEsAdmin(false);
+          }
+        } catch (error) {
+          console.error("Error al verificar los claims:", error);
+          setEsAdmin(false);
+        }
+      } else {
+        // Si no está logueado, limpiamos los estados de forma segura
+        setUser(null);
+        setEsAdmin(false);
+      }
+      setCargando(false);
     });
-    
-    return () => unsub();
-  }, []); // Quitamos 'user' de las dependencias para que no se reinicie al desloguearse
 
-  // ACCIONES DE FIREBASE
-  const crearProducto = async (nuevoProducto) => {
-    await addDoc(collection(db, "libros"), {
-      ...nuevoProducto,
-      usuario_id: user?.id || ''
-    });
-  };
+    return () => unsubscribe();
+  }, []);
 
-  const eliminarProducto = async (id) => {
-    await deleteDoc(doc(db, "libros", id));
-  };
+  // 2. CARGAR LIBROS DESDE EL BACKEND EN EXPRESS
+  useEffect(() => {
+    const cargarLibrosDelBackend = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/libros");
+        if (res.ok) {
+          const datos = await res.json();
+          setLibros(datos);
+        }
+      } catch (error) {
+        console.error("Error al traer los libros de Express:", error);
+      }
+    };
 
-  const actualizarProducto = async (id, cambios) => {
-    await updateDoc(doc(db, "libros", id), cambios);
-  };
+    cargarLibrosDelBackend();
+  }, []); // Array vacío para que solo se ejecute una vez al montar la app
 
-  const logout = async () => {
-  await firebaseSignOut(auth);
-  navigate('/'); 
-};
+  // 3. PANTALLA DE CARGA MIENTRAS FIREBASE DETERMINA SI HAY SESIÓN
+  if (cargando) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
+        <h3>Iniciando Polilibros...</h3>
+        <p>Verificando credenciales de seguridad</p>
+      </div>
+    );
+  }
 
-  if (cargando) return <p>Cargando aplicación...</p>;
-
+  // 4. ENRUTAMIENTO SEGURO
   return (
-    <div className="app-container">
-      {user && (
-        <nav style={{ padding: '1rem', background: '#f4f4f4', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <span style={{ cursor: 'pointer', fontWeight: 'bold', marginRight: '1.5rem' }} onClick={() => navigate('/')}>
-              Polilibros 📚
-            </span>
-            <span>Sesión: <strong>{user.email}</strong></span>
-          </div>
-          <div>
-            <button style={{ marginRight: '1rem' }} onClick={() => navigate('/dashboard')}>Mi Panel</button>
-            <button onClick={logout}>Cerrar Sesión</button>
-          </div>
-        </nav>
-      )}
-
-{/* RUTA RAÍZ: Ahora muestra la Landing Page de forma pública */}
+    <div className="App">
       <Routes>
-        <Route 
-          path="/" 
-          element={<Landing libros={libros} user={user} />} 
+        {/* Ruta Pública Principal */}
+        <Route path="/" element={<Landing libros={libros} user={user} />} />
+        
+        {/* Login con redirección inteligente */}
+        <Route
+          path="/login"
+          element={!user ? <Login /> : (esAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)}
         />
 
-
-{/* LOGIN: Redirige al Dashboard si ya inició sesión */}
-        <Route 
-          path="/login" 
-          element={!user ? <Login /> : <Navigate to="/dashboard" />} 
+        {/* Dashboard de Usuario Común (Pasamos el 'user' obligatoriamente) */}
+        <Route
+          path="/dashboard"
+          element={user ? <Dashboard libros={libros} user={user} /> : <Navigate to="/login" />}
         />
 
-{/* DASHBOARD PRIVADO: Gestión de inventario (Antes estaba en la raíz) */}
-        <Route 
-          path="/dashboard" 
+        {/* Dashboard de Administrador */}
+        <Route
+          path="/admin"
           element={
-            user ? (
-              <Dashboard 
-                libros={libros} 
-                onCrear={crearProducto} 
-                onEliminar={eliminarProducto} 
-                onActualizar={actualizarProducto} 
-              />
+            user && esAdmin ? (
+              <AdminDashboard libros={libros} />
             ) : (
-              <Navigate to="/login" />
+              user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
             )
-          } 
+          }
         />
 
- {/* Redirección por defecto */}
+        {/* Cualquier otra ruta manda a la Landing */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
