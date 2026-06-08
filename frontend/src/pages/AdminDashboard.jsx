@@ -1,10 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService';
+import Sidebar from '../components/Sidebar';
 
 const AdminDashboard = () => {
   const [pestana, setPestana] = useState('reportes');
+  const [sidebarAbierto, setSidebarAbierto] = useState(false);
+
   const [reportes, setReportes] = useState([]);
-  const [usuarios, setUsuarios] = useState([]); 
+  const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(false);
 
   // Cargar Reportes Pendientes desde Express
@@ -14,10 +17,10 @@ const AdminDashboard = () => {
         setCargando(true);
         try {
           const token = await auth.currentUser.getIdToken();
-          const res = await fetch("http://localhost:3000/api/reportes/pendientes", {
+          const res = await fetch("http://127.0.0.1:3000/api/reportes/pendientes", {
             headers: { "Authorization": `Bearer ${token}` }
           });
-          
+
           if (res.ok) {
             const datos = await res.json();
             setReportes(datos);
@@ -40,8 +43,8 @@ const AdminDashboard = () => {
       if (pestana === 'usuarios' && auth.currentUser) {
         try {
           const token = await auth.currentUser.getIdToken();
-          const res = await fetch("http://localhost:3000/api/usuarios", { 
-            headers: { "Authorization": `Bearer ${token}` } 
+          const res = await fetch("http://127.0.0.1:3000/api/usuarios", {
+            headers: { "Authorization": `Bearer ${token}` }
           });
           if (res.ok) setUsuarios(await res.json());
         } catch (error) {
@@ -57,41 +60,62 @@ const AdminDashboard = () => {
 
   return (
     <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem' }}>
-      <h2>Panel de Administración Global</h2>
-      
-      <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
-        <button onClick={() => setPestana('reportes')}>🚨 Reportes</button>
-        <button onClick={() => setPestana('usuarios')}>⚙️ Control de Usuarios</button>
+      <Sidebar user={auth.currentUser} esAdmin={true} isOpen={sidebarAbierto} onClose={() => setSidebarAbierto(false)} />
+
+      <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem', fontFamily: 'sans-serif' }}>
+        <button
+          onClick={() => setSidebarAbierto(true)}
+          style={{
+            background: '#0f2027',
+            color: '#fff',
+            border: 'none',
+            padding: '10px 15px',
+            borderRadius: '4px',
+            cursor: 'pointer',
+            marginBottom: '20px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            fontWeight: 'bold'
+          }}
+        >
+          ☰ Abrir Menú
+        </button>
+        <h2>Panel de Administración Global</h2>
+
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+          <button onClick={() => setPestana('reportes')}>🚨 Reportes</button>
+          <button onClick={() => setPestana('usuarios')}>⚙️ Control de Usuarios</button>
+        </div>
+
+        {cargando && <p>Cargando información del servidor...</p>}
+
+        {!cargando && pestana === 'reportes' && (
+          <div>
+            <h3>Bandeja de Reportes Pendientes</h3>
+            {reportes.length === 0 ? (
+              <p>No hay reportes que revisar por el momento. ¡Buen trabajo!</p>
+            ) : (
+              reportes.map(rep => (
+                <div key={rep.id} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '10px', borderRadius: '6px' }}>
+                  <p><strong>Libro Reportado:</strong> {rep.bookTitle}</p>
+                  <p><strong>Motivo del Reporte:</strong> {rep.reason}</p>
+                  <p><small>ID del Infractor: {rep.reportedUser}</small></p>
+                </div>
+              ))
+            )}
+          </div>
+        )}
+
+        {pestana === 'usuarios' && (
+          <div style={{ background: '#222', color: '#fff', padding: '2rem', borderRadius: '8px' }}>
+            <h3>Control de Usuarios (API)</h3>
+            <p>Lista de control de acceso sincronizada con Firebase Admin.</p>
+            {/* Renderizado de tu tabla de usuarios... */}
+          </div>
+        )}
       </div>
-
-      {cargando && <p>Cargando información del servidor...</p>}
-
-      {!cargando && pestana === 'reportes' && (
-        <div>
-          <h3>Bandeja de Reportes Pendientes</h3>
-          {reportes.length === 0 ? (
-            <p>No hay reportes que revisar por el momento. ¡Buen trabajo!</p>
-          ) : (
-            reportes.map(rep => (
-              <div key={rep.id} style={{ border: '1px solid #ccc', padding: '15px', marginBottom: '10px', borderRadius: '6px' }}>
-                <p><strong>Libro Reportado:</strong> {rep.bookTitle}</p>
-                <p><strong>Motivo del Reporte:</strong> {rep.reason}</p>
-                <p><small>ID del Infractor: {rep.reportedUser}</small></p>
-              </div>
-            ))
-          )}
-        </div>
-      )}
-
-      {pestana === 'usuarios' && (
-        <div style={{ background: '#222', color: '#fff', padding: '2rem', borderRadius: '8px' }}>
-          <h3>Control de Usuarios (API)</h3>
-          <p>Lista de control de acceso sincronizada con Firebase Admin.</p>
-          {/* Renderizado de tu tabla de usuarios... */}
-        </div>
-      )}
     </div>
   );
 };
-
 export default AdminDashboard;

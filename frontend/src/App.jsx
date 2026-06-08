@@ -1,7 +1,7 @@
-import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { auth } from './services/authService';
-import { onAuthStateChanged } from 'firebase/auth';
+import { onAuthStateChanged, signOut } from 'firebase/auth';
 
 import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx';
@@ -10,42 +10,44 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
-
-  //auth.signOut();  //Activar en caso de emergencia para cerrar sesión de forma segura y rápida a todos los usuarios (útil durante desarrollo o pruebas de roles)
-
-  const [esAdmin, setEsAdmin] = useState(false); 
+  const [esAdmin, setEsAdmin] = useState(false);
   const [libros, setLibros] = useState([]);
   const [cargando, setCargando] = useState(true);
 
-  // 1. GESTIÓN DE SESIÓN Y ROLES (SEGURO)
+  // 1. GESTIÓN DE SESIÓN (ESTRICTAMENTE SINCRONIZADA)
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+
       if (firebaseUser) {
-        setUser(firebaseUser);
         try {
-          // 🛡️ Solo pedimos el token si 'firebaseUser' NO es null
-          const tokenResult = await firebaseUser.getIdTokenResult();
-          if (tokenResult.claims.admin === true) {
-            setEsAdmin(true);
-          } else {
-            setEsAdmin(false);
-          }
+          await firebaseUser.getIdToken(true);
+
+          const tokenResult = await firebaseUser.getIdTokenResult(true);
+
+          console.log("UID:", firebaseUser.uid);
+          console.log("Claims:", tokenResult.claims);
+
+          setUser(firebaseUser);
+          setEsAdmin(tokenResult.claims.role === "admin");
+
         } catch (error) {
           console.error("Error al verificar los claims:", error);
+          setUser(null);
           setEsAdmin(false);
         }
       } else {
-        // Si no está logueado, limpiamos los estados de forma segura
         setUser(null);
         setEsAdmin(false);
       }
+
+      // SOLO CUANDO TODO ESTÁ LISTO, quitamos la pantalla de carga
       setCargando(false);
     });
 
     return () => unsubscribe();
   }, []);
 
-  // 2. CARGAR LIBROS DESDE EL BACKEND EN EXPRESS
+  // 2. CARGAR LIBROS DEL BACKEND (Una sola vez)
   useEffect(() => {
     const cargarLibrosDelBackend = async () => {
       try {
@@ -55,40 +57,82 @@ function App() {
           setLibros(datos);
         }
       } catch (error) {
-        console.error("Error al traer los libros de Express:", error);
+        console.error("Error al traer los libros:", error);
       }
     };
-
     cargarLibrosDelBackend();
-  }, []); // Array vacío para que solo se ejecute una vez al montar la app
+  }, []);
 
-  // 3. PANTALLA DE CARGA MIENTRAS FIREBASE DETERMINA SI HAY SESIÓN
+  // 3. PANTALLA DE CARGA BLINDADA
   if (cargando) {
     return (
-      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', flexDirection: 'column' }}>
-        <h3>Iniciando Polilibros...</h3>
-        <p>Verificando credenciales de seguridad</p>
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh', backgroundColor: '#111', color: 'white' }}>
+        <h2>Cargando Polilibros... Verificando accesos.</h2>
       </div>
     );
   }
 
-  // 4. ENRUTAMIENTO SEGURO
+  // 4. FUNCIÓN DE EMERGENCIA PARA SALIR
+  const handleCerrarSesion = async () => {
+    await signOut(auth);
+    localStorage.clear();
+    window.location.href = '/'; // Forzamos recarga de la página limpia
+  };
+
+  if (cargando) {
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        backgroundColor: '#1a1a1a',
+        color: '#fff',
+        fontFamily: 'sans-serif'
+      }}>
+        <h3>Cargando sesión...</h3>
+      </div>
+    );
+  }
+
   return (
     <div className="App">
+
+      {/* BOTÓN FLOTANTE DE EMERGENCIA: Siempre visible si estás logueado */}
+      {user && (
+        <button
+          onClick={handleCerrarSesion}
+          style={{
+            position: 'fixed', bottom: '20px', right: '20px', zIndex: 9999,
+            backgroundColor: '#dc3545', color: 'white', padding: '15px 20px',
+            borderRadius: '50px', fontWeight: 'bold', border: 'none', cursor: 'pointer',
+            boxShadow: '0px 4px 10px rgba(0,0,0,0.5)'
+          }}
+        >
+          🚪 SALIR DE EMERGENCIA
+        </button>
+      )}
+
       <Routes>
-        {/* Ruta Pública Principal */}
-        <Route path="/" element={<Landing libros={libros} user={user} />} />
-        
-        {/* Login con redirección inteligente */}
+        {/* Rutas Públicas */}
+        <Route path="/" element={<Landing libros={libros || []} user={user} />} />
+
         <Route
           path="/login"
           element={!user ? <Login /> : (esAdmin ? <Navigate to="/admin" /> : <Navigate to="/dashboard" />)}
         />
 
-        {/* Dashboard de Usuario Común (Pasamos el 'user' obligatoriamente) */}
+        {/* Dashboard de Usuario Común */}
         <Route
           path="/dashboard"
-          element={user ? <Dashboard libros={libros} user={user} /> : <Navigate to="/login" />}
+          element={
+            user && !esAdmin ? (
+              <Dashboard libros={libros || []} user={user} />
+            ) : (
+              // Si es admin, lo manda al admin, si no, al login
+              esAdmin ? <Navigate to="/admin" /> : <Navigate to="/login" />
+            )
+          }
         />
 
         {/* Dashboard de Administrador */}
@@ -96,14 +140,14 @@ function App() {
           path="/admin"
           element={
             user && esAdmin ? (
-              <AdminDashboard libros={libros} />
+              <AdminDashboard libros={libros || []} user={user} />
             ) : (
+              // Si está logueado pero no es admin, lo manda a su panel. Si no, al login.
               user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />
             )
           }
         />
 
-        {/* Cualquier otra ruta manda a la Landing */}
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>

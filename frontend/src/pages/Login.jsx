@@ -38,7 +38,6 @@ export default function LoginForm() {
       setMensaje('Iniciando sesión...');
       await login(email, password); 
       setMensaje('Sesión iniciada correctamente.');
-      navigate('/dashboard'); 
     } catch (error) {
       setMensaje('Error: ' + error.message);
     }
