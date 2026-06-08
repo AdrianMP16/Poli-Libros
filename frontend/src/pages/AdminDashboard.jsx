@@ -2,6 +2,40 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService';
 import Sidebar from '../components/Sidebar';
 
+const cargarUsuarios = async () => {
+
+  if (!auth.currentUser) return;
+
+  try {
+
+    const token =
+      await auth.currentUser.getIdToken();
+
+    const res = await fetch(
+      "http://127.0.0.1:3000/api/usuarios",
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    if (res.ok) {
+
+      const datos = await res.json();
+
+      setUsuarios(datos);
+
+    }
+
+  } catch(error) {
+
+    console.error(error);
+
+  }
+
+};
+
 const AdminDashboard = () => {
   const [pestana, setPestana] = useState('reportes');
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
@@ -9,6 +43,23 @@ const AdminDashboard = () => {
   const [reportes, setReportes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(false);
+
+  const suspenderUsuario = async (uid) => {
+
+    const token = await auth.currentUser.getIdToken();
+
+    await fetch(
+      `http://127.0.0.1:3000/api/usuarios/${uid}/deshabilitar`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    cargarUsuarios();
+  };
 
   // Cargar Reportes Pendientes desde Express
   useEffect(() => {
@@ -111,11 +162,34 @@ const AdminDashboard = () => {
           <div style={{ background: '#222', color: '#fff', padding: '2rem', borderRadius: '8px' }}>
             <h3>Control de Usuarios (API)</h3>
             <p>Lista de control de acceso sincronizada con Firebase Admin.</p>
-            {/* Renderizado de tu tabla de usuarios... */}
-          </div>
+            {usuarios.map(usuario => (
+              <div key={usuario.uid}
+                style={{
+                  border: '1px solid #444',
+                  padding: '1rem',
+                  marginBottom: '1rem'
+              }}
+              >
+                <h4>{usuario.nombre}</h4>
+
+                <p>{usuario.email}</p>
+
+                <button
+                  onClick={() => eliminarUsuario(usuario.uid)}
+                >
+                  Eliminar
+                </button>
+                <button
+                  onClick={() => suspenderUsuario(usuario.uid)}
+                >
+                  Suspender
+                </button>
+              </div>
+            ))}
+              </div>
         )}
-      </div>
+          </div>
     </div>
-  );
+      );
 };
-export default AdminDashboard;
+      export default AdminDashboard;

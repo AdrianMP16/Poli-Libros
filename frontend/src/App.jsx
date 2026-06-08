@@ -16,36 +16,57 @@ function App() {
 
   // 1. GESTIÓN DE SESIÓN (ESTRICTAMENTE SINCRONIZADA)
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      try {
+        // 1. Forzamos la actualización del token y obtenemos los claims
+        const tokenResult = await firebaseUser.getIdTokenResult(true);
+        const token = tokenResult.token; // Extraemos el token directamente de aquí
 
-      if (firebaseUser) {
-        try {
-          await firebaseUser.getIdToken(true);
+        // 2. Verificamos la sanción en tu API backend
+        const res = await fetch("http://127.0.0.1:3000/api/usuarios/verificar-sancion", {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
 
-          const tokenResult = await firebaseUser.getIdTokenResult(true);
+        const datos = await res.json();
 
-          console.log("UID:", firebaseUser.uid);
-          console.log("Claims:", tokenResult.claims);
-
-          setUser(firebaseUser);
-          setEsAdmin(tokenResult.claims.role === "admin");
-
-        } catch (error) {
-          console.error("Error al verificar los claims:", error);
+        // 3. Si está suspendido, lo expulsamos inmediatamente y detenemos el flujo
+        if (datos.suspendido) {
+          alert(`Tu cuenta está suspendida hasta ${datos.fechaFin}`);
+          await signOut(auth); // Esto volverá a disparar onAuthStateChanged con firebaseUser = null
+          
           setUser(null);
           setEsAdmin(false);
+          setCargando(false);
+          return; // Clave: Salimos para que no se ejecute el código de abajo
         }
-      } else {
+
+        // 4. Si NO está suspendido, guardamos los datos del usuario en el estado
+        console.log("UID:", firebaseUser.uid);
+        console.log("Claims:", tokenResult.claims);
+
+        setUser(firebaseUser);
+        setEsAdmin(tokenResult.claims.role === "admin");
+
+      } catch (error) {
+        console.error("Error al verificar los claims o la sanción:", error);
         setUser(null);
         setEsAdmin(false);
       }
+    } else {
+      // Flujo cuando no hay usuario (ej. si hizo signOut o no ha iniciado sesión)
+      setUser(null);
+      setEsAdmin(false);
+    }
 
-      // SOLO CUANDO TODO ESTÁ LISTO, quitamos la pantalla de carga
-      setCargando(false);
-    });
+    // SOLO CUANDO TODO ESTÁ LISTO (sea éxito, error, o sin sesión), quitamos la carga
+    setCargando(false);
+  });
 
-    return () => unsubscribe();
-  }, []);
+  return () => unsubscribe();
+}, []);
 
   // 2. CARGAR LIBROS DEL BACKEND (Una sola vez)
   useEffect(() => {

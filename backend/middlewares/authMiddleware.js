@@ -19,7 +19,7 @@ const verificarAutenticado = async (req, res, next) => {
 
 const verificarAdmin = async (req, res, next) => {
   await verificarAutenticado(req, res, () => {
-    if (req.user && req.user.admin === true) {
+    if (req.user && req.user.role === "admin") {
       next();
     } else {
       return res.status(403).json({ mensaje: "Acceso denegado. Se requieren permisos de administrador." });
