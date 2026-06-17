@@ -7,9 +7,9 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares globales
 app.use(cors({
-  origin: "http://localhost:5173", // Autoriza únicamente a tu frontend de Vite
-  methods: ["GET", "POST", "PUT", "DELETE"], // Permite los métodos HTTP que usas
-  allowedHeaders: ["Content-Type", "Authorization"], // ¡Clave! Permite que envíes el token de Firebase Auth
+  origin: "http://localhost:5173", 
+  methods: ["GET", "POST", "PUT", "DELETE"], // Permite los métodos HTTP
+  allowedHeaders: ["Content-Type", "Authorization"], 
   credentials: true
 }));
 app.use(express.json());
@@ -23,6 +23,11 @@ const rutasUsuarios = require("./routes/usuarios");
 app.use("/api/libros", rutasLibros);
 app.use("/api/reportes", rutasReportes);
 app.use("/api/usuarios", rutasUsuarios);
+
+// RUTA ADICIONAL PARA SABER QUE ESTÁ ACTIVO EN VEZ DE LANZAR "CANNOT GET"
+app.get("/", (req, res) => {
+  res.send("El backend de PoliLibros está activo y escuchando peticiones.");
+});
 
 // Inicio del servidor
 app.listen(PORT, () => {
