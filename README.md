@@ -74,4 +74,4 @@ Aplicación en funcionamiento
 
 **8. Link Permanente de Vercel:**
 
-https://poli-libros-seven.vercel.app
+https://poli-libros-six.vercel.app
