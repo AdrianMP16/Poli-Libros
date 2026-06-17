@@ -1,10 +1,10 @@
-Poli-Libros: Plataforma de Compra y Venta de Libros Usados
-1. Descripción del Proyecto
+## Poli-Libros: Plataforma de Compra y Venta de Libros Usados
+**1. Descripción del Proyecto:**
 Poli-Libros es una aplicación web diseñada para facilitar el intercambio de material bibliográfico específico entre los estudiantes del Centro de Educación Continua (CEC) de la Escuela Politécnica Nacional (EPN). El proyecto surge como una solución organizada para reemplazar la gestión ineficiente y desordenada de los grupos de mensajería instantánea actuales.
 
 La plataforma permite a los usuarios visualizar una lista de libros disponibles, gestionar publicaciones de venta y establecer contacto directo para coordinar entregas físicas dentro del campus universitario.
 
-2. Características Principales
+**2. Características Principales:**
 Visualización de Catálogo: Listado dinámico de libros presentados en tarjetas que incluyen nombre, precio y estado actual.
 
 Gestión de Estados: Clasificación en tiempo real de los artículos como "Disponible" o "En negociaciones".
@@ -13,7 +13,7 @@ Autenticación Institucional: Sistema de acceso mediante Firebase Auth, orientad
 
 Sistema de Chat: Canal de comunicación integrado entre comprador e interesado para acordar puntos de reunión y detalles de la entrega.
 
-3. Tecnologías Utilizadas
+**3. Tecnologías Utilizadas:**
 Frontend: Vite y React para la construcción de una interfaz de usuario reactiva y eficiente.
 
 Backend: Node.js con el framework Express para la gestión de la lógica de servidor y API.
@@ -22,7 +22,7 @@ Base de Datos: Cloud Firestore (NoSQL) para el almacenamiento de libros, usuario
 
 Autenticación: Firebase Authentication para la gestión segura de identidades.
 
-4. Estructura de Datos (Firestore)
+**4. Estructura de Datos (Firestore):**
 La colección principal de la base de datos se denomina libros y contiene los siguientes campos técnicos:
 
 titulo (string): Nombre del texto del CEC.
@@ -37,7 +37,7 @@ incluye_codigo (boolean): Verificación de la vigencia del código de plataforma
 
 vendedor_id (string): Identificador único del usuario propietario.
 
-5. Instalación y Configuración
+**5. Instalación y Configuración:**
 Para ejecutar el proyecto localmente, se deben seguir estos pasos:
 
 Clonar el repositorio.
@@ -55,10 +55,10 @@ Frontend: npm run dev.
 
 Backend: node index.js.
 
-6. Notas de Seguridad
+**6. Notas de Seguridad:**
 El archivo de clave privada de Firebase y las carpetas de dependencias (node_modules) están configurados en el .gitignore raíz para evitar su exposición en repositorios públicos.
 
-7. Capturas del progreso del proyecto:
+**7. Capturas del progreso del proyecto:**
 
 Login:
 <img width="1600" height="866" alt="7953477f-50a3-40a5-9b43-58d4c3da45fd" src="https://github.com/user-attachments/assets/c2b3a9fd-aee6-4e9c-a8df-71b4c0c6ba6c" />
@@ -71,3 +71,7 @@ Base de datos en Firebase
 
 Aplicación en funcionamiento
 <img width="1600" height="866" alt="c9434e8e-5e63-4fea-a7db-b4c088742914" src="https://github.com/user-attachments/assets/8a84965e-41d8-43aa-af59-e38f43a94322" />
+
+**8. Link Permanente de Vercel:**
+
+https://poli-libros-seven.vercel.app
