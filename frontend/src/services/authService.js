@@ -7,7 +7,7 @@ import {
   updatePassword, 
   updateProfile   
 } from "firebase/auth";
-import { app } from "./firestore"; 
+import { app } from "./firebaseConfig"; 
 
 export const auth = getAuth(app);
 const API_URL = "http://localhost:3000/api";

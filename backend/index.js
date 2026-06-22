@@ -19,6 +19,7 @@ app.use(express.json());
 const rutasLibros = require("./routes/libros");
 const rutasReportes = require("./routes/reportes");
 const rutasUsuarios = require("./routes/usuarios");
+const rutasAnuncios = require("./routes/anuncios");
 
 // ENRUTAMIENTO PRINCIPAL
 app.use("/api/libros", rutasLibros);

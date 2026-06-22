@@ -2,7 +2,7 @@
 const express = require("express");
 const router = express.Router();
 const { db } = require("../config/firebase");
-const { verificarAdmin } = require("../middlewares/authMiddleware");
+const { verificarAdmin, verificarAutenticado } = require("../middlewares/authMiddleware");
 
 // OBTENER TODOS LOS LIBROS (Para tu ListaLibros.jsx)
 router.get("/", async (req, res) => {
@@ -15,14 +15,35 @@ router.get("/", async (req, res) => {
   }
 });
 
+router.post("/", verificarAutenticado, async (req, res) => {
+  try {
+    const nuevoLibro = {
+      ...req.body,
+      vendedor_id: req.user.uid, // req.user viene del middleware
+      fecha_publicacion: new Date().toISOString()
+    };
+
+    const docRef = await db.collection("libros").add(nuevoLibro);
+    res.status(201).json({ mensaje: "Libro publicado", id: docRef.id });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al publicar", error: error.message });
+  }
+});
+
 // ELIMINAR UN LIBRO (Lógica que ya tenías)
-router.delete("/:id", verificarAdmin, async (req, res) => {
+router.delete("/:id", verificarAutenticado, async (req, res) => {
   try {
     const docRef = db.collection("libros").doc(req.params.id);
     const doc = await docRef.get();
 
     if (!doc.exists) {
       return res.status(404).json({ mensaje: "Libro no encontrado" });
+    }
+
+    const libro = doc.data();
+
+    if (libro.vendedor_id !== req.user.uid && req.user.role !== "admin") {
+      return res.status(403).json({ mensaje: "No tienes permiso para borrar este libro" });
     }
 
     await docRef.delete();

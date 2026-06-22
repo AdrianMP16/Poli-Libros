@@ -30,6 +30,20 @@ router.post("/", verificarAutenticado, async (req, res) => {
   }
 });
 
+router.get("/mis-reportes", verificarAutenticado, async (req, res) => {
+  try {
+    // Buscamos los reportes donde el 'reportedUser' sea igual al UID del usuario que hace la petición
+    const snapshot = await db.collection("reports")
+                             .where("reportedUser", "==", req.user.uid)
+                             .get();
+                             
+    const misReportes = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(misReportes);
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener tus reportes", error: error.message });
+  }
+});
+
 // VER REPORTES PENDIENTES (Para AdminDashboard.jsx)
 router.get("/pendientes", verificarAdmin, async (req, res) => {
   try {

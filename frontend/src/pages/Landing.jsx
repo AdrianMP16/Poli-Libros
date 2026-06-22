@@ -3,6 +3,22 @@ import { useNavigate } from 'react-router-dom';
 
 function Landing({ libros = [], user }) {
   const navigate = useNavigate();
+  const [anuncios, setAnuncios] = useState([]);
+
+  useEffect(() => {
+    const cargarAnuncios = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/anuncios");
+        if (res.ok) {
+          const datos = await res.json();
+          setAnuncios(datos);
+        }
+      } catch (error) {
+        console.error("Error al cargar anuncios:", error);
+      }
+    };
+    cargarAnuncios();
+  }, []);
 
   // Estilos
   const styles = {
@@ -78,6 +94,22 @@ function Landing({ libros = [], user }) {
           )}
         </div>
       </header>
+
+      {/*SECCIÓN DE ANUNCIOS GLOBALES (Solo aparece si hay anuncios)*/}
+      {anuncios.length > 0 && (
+        <section style={{ maxWidth: '1200px', margin: '2rem auto', padding: '0 2rem' }}>
+          <div style={{ padding: '20px', background: '#fff3cd', border: '1px solid #ffeeba', borderRadius: '8px' }}>
+            <h3 style={{ color: '#856404', marginTop: 0 }}>📢 Avisos Importantes de Administración</h3>
+            {anuncios.map(anuncio => (
+              <div key={anuncio.id} style={{ marginBottom: '10px', borderBottom: '1px solid #ffeeba', paddingBottom: '10px' }}>
+                <h4 style={{ margin: '0 0 5px 0', color: '#333' }}>{anuncio.titulo}</h4>
+                <p style={{ margin: 0, color: '#555' }}>{anuncio.mensaje}</p>
+                <small style={{ color: '#888' }}>Por: {anuncio.autor}</small>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* 2. BENEFICIOS */}
       <section style={styles.section}>

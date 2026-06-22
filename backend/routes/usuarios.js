@@ -191,7 +191,7 @@ router.put("/:uid/habilitar", verificarAdmin, async (req, res) => {
 
 }); 
 
-// ASIGNAR ROL DE ADMIN (Lógica que ya tenías)
+// ASIGNAR ROL DE ADMIN
 // router.post("/crear-primer-admin", async (req, res) => {
 //   const { uid } = req.body;
 //   if (!uid) {
