@@ -43,10 +43,6 @@ function App() {
             return; // Clave: Salimos para que no se ejecute el código de abajo
           }
 
-          // 4. Si NO está suspendido, guardamos los datos del usuario en el estado
-          console.log("UID:", firebaseUser.uid);
-          console.log("Claims:", tokenResult.claims);
-
           setUser(firebaseUser);
           setEsAdmin(tokenResult.claims.role === "admin");
 
@@ -84,21 +80,31 @@ function App() {
     cargarLibrosDelBackend();
   }, []);
 
-  const handleCrearLibro = async (nuevoLibro) => {
+  const handleCrearLibro = async (datosLibro) => {
     try {
       const token = await auth.currentUser.getIdToken();
+      
+      // Identificamos si estamos enviando un FormData (con imagen) o un JSON normal
+      const esFormData = datosLibro instanceof FormData;
+      
+      const headers = {
+        "Authorization": `Bearer ${token}`
+      };
+
+      // SOLO si no es FormData, agregamos el Content-Type JSON
+      if (!esFormData) {
+        headers["Content-Type"] = "application/json";
+      }
+
       const res = await fetch("http://localhost:3000/api/libros", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`
-        },
-        body: JSON.stringify(nuevoLibro)
+        headers: headers,
+        body: esFormData ? datosLibro : JSON.stringify(datosLibro)
       });
 
       if (res.ok) {
         alert("Libro publicado con éxito");
-        cargarLibrosDelBackend(); // Recargamos el catálogo
+        cargarLibrosDelBackend(); 
       } else {
         const errorData = await res.json();
         alert("Error al publicar: " + errorData.mensaje);

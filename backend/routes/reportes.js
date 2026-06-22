@@ -55,4 +55,31 @@ router.get("/pendientes", verificarAdmin, async (req, res) => {
   }
 });
 
+// INVALIDAR UN REPORTE (Descartarlo)
+router.put("/:id/invalidar", verificarAdmin, async (req, res) => {
+  try {
+    // Cambiamos el estado a 'invalid' para que ya no salga en la bandeja
+    await db.collection("reports").doc(req.params.id).update({
+      status: "invalid"
+    });
+    res.json({ mensaje: "Reporte descartado exitosamente" });
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al invalidar reporte", error: error.message });
+  }
+});
+
+router.get("/notificaciones", verificarAutenticado, async (req, res) => {
+  try {
+    const snapshot = await db.collection("reports")
+                             .where("reportedBy", "==", req.user.uid)
+                             .where("status", "==", "resolved_ban")
+                             .get();
+                             
+    const notificaciones = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    res.json(notificaciones);
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener notificaciones", error: error.message });
+  }
+});
+
 module.exports = router;

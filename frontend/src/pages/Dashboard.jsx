@@ -25,6 +25,9 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   const [verPasswordNueva, setVerPasswordNueva] = useState(false);
   const [verPasswordConfirmar, setVerPasswordConfirmar] = useState(false);
 
+  const [imagen, setImagen] = useState(null);
+  const [subiendo, setSubiendo] = useState(false);
+
   useEffect(() => {
     const cargarMisReportes = async () => {
       // Solo cargamos si estamos en la pestaña de reportes
@@ -66,46 +69,74 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     const cargarDatosExtras = async () => {
       if (auth.currentUser && pestana === 'perfil') {
         try {
-          const docRef = doc(db, "usuarios", auth.currentUser.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
+          const token = await auth.currentUser.getIdToken();
+
+          // Hacemos la petición a nuestra API en lugar de ir a Firestore directamente
+          const res = await fetch(`http://127.0.0.1:3000/api/usuarios/${auth.currentUser.uid}`, {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
+
+          if (res.ok) {
+            const datos = await res.json();
             setPerfilData({
               nombre: auth.currentUser.displayName || '',
-              telefono: docSnap.data().telefono || ''
+              telefono: datos.telefono || '' // Tomamos el teléfono de la respuesta de tu API
             });
           }
         } catch (error) {
-          console.error("Error al cargar datos extras de Firestore:", error);
+          console.error("Error al cargar datos extras del backend:", error);
         }
       }
     };
     cargarDatosExtras();
-  }, [pestana, db]);
+  }, [pestana]);
 
   useEffect(() => {
-    if (pestana === 'notificaciones' && auth.currentUser) {
-      const q = query(
-        collection(db, "reports"),
-        where("reportedBy", "==", auth.currentUser.uid),
-        where("status", "==", "resolved_ban")
-      );
-      const unsubscribe = onSnapshot(q, (snapshot) => {
-        setMisReportes(snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() })));
-      });
-      return () => unsubscribe();
-    }
-  }, [pestana, db]);
+    const cargarNotificaciones = async () => {
+      if (pestana === 'notificaciones' && auth.currentUser) {
+        try {
+          const token = await auth.currentUser.getIdToken();
+          const res = await fetch("http://127.0.0.1:3000/api/reportes/notificaciones", {
+            headers: { "Authorization": `Bearer ${token}` }
+          });
 
-  const handleSubmitLibro = (e) => {
+          if (res.ok) {
+            const datos = await res.json();
+            setMisReportes(datos);
+          }
+        } catch (error) {
+          console.error("Error al cargar notificaciones:", error);
+        }
+      }
+    };
+    cargarNotificaciones();
+  }, [pestana]);
+
+  const handleSubmitLibro = async (e) => {
     e.preventDefault();
     if (!formData.titulo || !formData.precio) return alert("Título y precio obligatorios");
-    onCrear({
-      ...formData,
-      precio: Number(formData.precio),
-      vendedor_id: auth.currentUser?.uid,
-      fecha_publicacion: new Date().toISOString()
-    });
+    if (!imagen) return alert("Por favor, sube una foto del libro.");
+
+    setSubiendo(true);
+
+    // Creamos el FormData para empaquetar texto + archivo
+    const formDataToSend = new FormData();
+    formDataToSend.append("titulo", formData.titulo);
+    formDataToSend.append("descripcion", formData.descripcion);
+    formDataToSend.append("precio", formData.precio);
+    formDataToSend.append("nivel", formData.nivel);
+    formDataToSend.append("estado", formData.estado);
+    formDataToSend.append("incluye_codigo", formData.incluye_codigo);
+    formDataToSend.append("imagen", imagen); // Agregamos el archivo
+
+    // Enviamos el FormData a la función global en App.jsx
+    await onCrear(formDataToSend);
+
+    // Limpiamos todo
     setFormData({ titulo: '', descripcion: '', precio: '', nivel: 'Nivel 1', estado: 'Nuevo', incluye_codigo: false, fotos: [] });
+    setImagen(null);
+    document.getElementById('file-input-libro').value = '';
+    setSubiendo(false);
   };
 
   const handleUpdatePerfil = async (e) => {
@@ -206,22 +237,39 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
                   Nivel
                   <select value={formData.nivel} onChange={(e) => setFormData({ ...formData, nivel: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
-                    <option value="Nivel 1">Nivel 1</option>
-                    <option value="Nivel 2">Nivel 2</option>
-                    <option value="Nivel 3">Nivel 3</option>
-                    <option value="Nivel 4">Nivel 4</option>
-                    <option value="Nivel 5">Nivel 5</option>
-                    <option value="Nivel 6">Nivel 6</option>
+                    <option value="Begginer">Begginer</option>
+                    <option value="Basico 1">Básico 1</option>
+                    <option value="Basico 2">Básico 2</option>
+                    <option value="Intermedio 1">Intermedio 1</option>
+                    <option value="Intermedio 2">Intermedio 2</option>
+                    <option value="Avanzado 1">Avanzado 1</option>
+                    <option value="Avanzado 2">Avanzado 2</option>
+                    <option value="Academico 1">Académico 1</option>
+                    <option value="Academico 2">Académico 2</option>
+                    <option value="Academico 3">Académico 3</option>
+                    <option value="Academico 4">Académico 4</option>
                   </select>
                 </label>
 
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
                   Estado
                   <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
-                    <option value="Nuevo">Nuevo (Sellado)</option>
-                    <option value="Como Nuevo">Como Nuevo (Sin apuntes)</option>
-                    <option value="Usado">Usado (Con rayones)</option>
+                    <option value="Como Nuevo">Como Nuevo (Sin rallones con esfero)</option>
+                    <option value="Usado">Usado (Con rayones de esfero)</option>
+                    <option value="Usado 2">Usado (Con apuntes en lápiz)</option>
                   </select>
+                </label>
+
+                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
+                  Foto del Libro *
+                  <input
+                    id="file-input-libro"
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => setImagen(e.target.files[0])}
+                    required
+                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}
+                  />
                 </label>
 
                 <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', color: '#333' }}>

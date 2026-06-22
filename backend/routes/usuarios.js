@@ -26,7 +26,7 @@ const verificarToken = async (req, res, next) => {
 
     next();
 
-  } catch(error) {
+  } catch (error) {
 
     return res.status(401).json({
       mensaje: "Token inválido"
@@ -59,7 +59,7 @@ router.post("/:uid/sancionar", verificarAdmin, async (req, res) => {
       mensaje: "Sanción creada correctamente"
     });
 
-  } catch(error) {
+  } catch (error) {
 
     res.status(500).json({
       mensaje: error.message
@@ -106,7 +106,7 @@ router.get(
         suspendido: false
       });
 
-    } catch(error) {
+    } catch (error) {
 
       res.status(500).json({
         mensaje: error.message
@@ -114,8 +114,62 @@ router.get(
 
     }
 
+  });
+
+router.get("/:uid", verificarToken, async (req, res) => {
+  try {
+    // Por seguridad, verificamos que el usuario solo pueda pedir sus propios datos
+    if (req.user.uid !== req.params.uid && req.user.role !== "admin") {
+      return res.status(403).json({ mensaje: "No tienes permiso para ver este perfil" });
+    }
+
+    const doc = await db.collection("usuarios").doc(req.params.uid).get();
+
+    if (!doc.exists) {
+      return res.status(404).json({ mensaje: "Usuario no encontrado" });
+    }
+
+    res.json(doc.data());
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al obtener perfil", error: error.message });
+  }
 });
 
+// APLICAR STRIKE Y BANEAR AUTOMÁTICAMENTE A LOS 3
+router.post("/:uid/strike", verificarAdmin, async (req, res) => {
+  try {
+    const userRef = db.collection("usuarios").doc(req.params.uid);
+    const userDoc = await userRef.get();
+
+    let strikes = 1;
+
+    if (userDoc.exists) {
+      const data = userDoc.data();
+      strikes = (data.strikes || 0) + 1;
+      await userRef.update({ strikes });
+    } else {
+      // Si el documento en Firestore no existía, lo creamos
+      await userRef.set({ strikes: 1 }, { merge: true });
+    }
+
+    // Si llega a 3 strikes, baneamos al usuario en Firebase Auth
+    if (strikes >= 3) {
+      await admin.auth().updateUser(req.params.uid, { disabled: true });
+      return res.json({
+        mensaje: "¡El usuario ha acumulado 3 strikes y ha sido baneado automáticamente!",
+        baneado: true
+      });
+    }
+
+    res.json({
+      mensaje: `Strike aplicado correctamente. El usuario tiene ${strikes}/3 strikes.`,
+      baneado: false
+    });
+
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al aplicar strike", error: error.message });
+  }
+});
 
 router.get("/", verificarAdmin, async (req, res) => {
   try {
@@ -160,7 +214,7 @@ router.put("/:uid/deshabilitar", verificarAdmin, async (req, res) => {
       mensaje: "Usuario suspendido correctamente"
     });
 
-  } catch(error) {
+  } catch (error) {
 
     res.status(500).json({
       mensaje: error.message
@@ -181,7 +235,7 @@ router.put("/:uid/habilitar", verificarAdmin, async (req, res) => {
       mensaje: "Usuario habilitado"
     });
 
-  } catch(error) {
+  } catch (error) {
 
     res.status(500).json({
       mensaje: error.message
@@ -189,7 +243,7 @@ router.put("/:uid/habilitar", verificarAdmin, async (req, res) => {
 
   }
 
-}); 
+});
 
 // ASIGNAR ROL DE ADMIN
 // router.post("/crear-primer-admin", async (req, res) => {

@@ -4,6 +4,18 @@ const router = express.Router();
 const { db } = require("../config/firebase");
 const { verificarAdmin, verificarAutenticado } = require("../middlewares/authMiddleware");
 
+const multer = require("multer");
+const cloudinary = require("cloudinary").v2;
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = multer.memoryStorage();
+const upload = multer({ storage });
+
 // OBTENER TODOS LOS LIBROS (Para tu ListaLibros.jsx)
 router.get("/", async (req, res) => {
   try {
@@ -15,14 +27,37 @@ router.get("/", async (req, res) => {
   }
 });
 
-router.post("/", verificarAutenticado, async (req, res) => {
+router.post("/", verificarAutenticado, upload.single('imagen'), async (req, res) => {
   try {
+    let imagen_url = null;
+
+    // 1. Si viene una imagen, la subimos a Cloudinary
+    if (req.file) {
+      // Convertimos el buffer a base64 para enviarlo a Cloudinary
+      const b64 = Buffer.from(req.file.buffer).toString("base64");
+      const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
+      
+      const cldRes = await cloudinary.uploader.upload(dataURI, {
+        folder: "polilibros" // Opcional: carpeta dentro de tu Cloudinary
+      });
+      imagen_url = cldRes.secure_url;
+    }
+
+    // 2. Preparamos el objeto del libro
+    // Multer convierte los campos de texto del FormData a strings, así que parseamos los necesarios
     const nuevoLibro = {
-      ...req.body,
-      vendedor_id: req.user.uid, // req.user viene del middleware
+      titulo: req.body.titulo,
+      descripcion: req.body.descripcion || "",
+      precio: Number(req.body.precio),
+      nivel: req.body.nivel,
+      estado: req.body.estado,
+      incluye_codigo: req.body.incluye_codigo === "true", // FormData envía strings
+      imagen_url: imagen_url, 
+      vendedor_id: req.user.uid,
       fecha_publicacion: new Date().toISOString()
     };
-
+    
+    // 3. Guardamos en Firestore
     const docRef = await db.collection("libros").add(nuevoLibro);
     res.status(201).json({ mensaje: "Libro publicado", id: docRef.id });
   } catch (error) {
