@@ -142,13 +142,6 @@ function App() {
     );
   }
 
-  // 4. FUNCIÓN DE EMERGENCIA PARA SALIR
-  const handleCerrarSesion = async () => {
-    await signOut(auth);
-    localStorage.clear();
-    window.location.href = '/'; // Forzamos recarga de la página limpia
-  };
-
   if (cargando) {
     return (
       <div style={{

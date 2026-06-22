@@ -25,6 +25,7 @@ const rutasAnuncios = require("./routes/anuncios");
 app.use("/api/libros", rutasLibros);
 app.use("/api/reportes", rutasReportes);
 app.use("/api/usuarios", rutasUsuarios);
+app.use("/api/anuncios", rutasAnuncios);
 
 // RUTA ADICIONAL PARA SABER QUE ESTÁ ACTIVO EN VEZ DE LANZAR "CANNOT GET"
 app.get("/", (req, res) => {

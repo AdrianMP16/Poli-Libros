@@ -48,20 +48,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     cargarMisReportes();
   }, [pestana]);
 
-  const handleSubmitLibro = (e) => {
-    e.preventDefault();
-    if (!formData.titulo || !formData.precio) return alert("Título y precio obligatorios");
-
-    // onCrear ahora hace el fetch a tu API gracias a los cambios en App.jsx
-    onCrear({
-      ...formData,
-      precio: Number(formData.precio)
-    });
-
-    // Limpiamos el formulario
-    setFormData({ titulo: '', descripcion: '', precio: '', nivel: 'Nivel 1', estado: 'Nuevo', incluye_codigo: false, fotos: [] });
-  };
-
   useEffect(() => {
     const verificarRol = async () => {
       if (auth.currentUser) {
