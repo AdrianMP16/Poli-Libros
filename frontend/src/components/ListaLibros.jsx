@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import LibroCard from './LibroCard';
 import '../styles/LibroCard.css'; 
+import {API_URL} from '../services/config';
 
 const ListaLibros = () => {
   const [libros, setLibros] = useState([]);
@@ -10,7 +11,7 @@ const ListaLibros = () => {
     const obtenerLibros = async () => {
       try {
         // Consumimos tu backend estructurado en Express
-        const res = await fetch('http://localhost:3000/api/libros');
+        const res = await fetch(`${API_URL}/api/libros`);
         if (!res.ok) throw new Error("Error en la respuesta del servidor");
         
         const datos = await res.json();

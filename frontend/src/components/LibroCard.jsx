@@ -1,5 +1,6 @@
 import React from 'react';
 import { auth } from '../services/authService'; // Mantenemos solo el servicio de Auth local
+import { API_URL } from '../services/config'; // Importamos la URL base de tu backend
 
 const LibroCard = ({ libro }) => {
   // Desestructuramos, manejando id_firestore (del backend) o id tradicional
@@ -37,7 +38,7 @@ const LibroCard = ({ libro }) => {
       const token = await auth.currentUser.getIdToken();
 
       // 2. ENVIAR EL REPORTE A EXPRESS CON EL TOKEN DE SEGURIDAD
-      const res = await fetch("http://localhost:3000/api/reportes", {
+      const res = await fetch(`${API_URL}/api/reportes`, {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
