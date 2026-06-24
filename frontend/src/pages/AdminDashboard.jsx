@@ -11,7 +11,6 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
   const [reportes, setReportes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
-  const [cargando, setCargando] = useState(false);
 
   const [anuncios, setAnuncios] = useState([]); 
   const [cargando, setCargando] = useState(false);
