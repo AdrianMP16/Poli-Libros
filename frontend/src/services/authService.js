@@ -8,9 +8,10 @@ import {
   updateProfile   
 } from "firebase/auth";
 import { app } from "./firebaseConfig"; 
+import { API_URL } from "./config";
 
 export const auth = getAuth(app);
-const API_URL = import.meta.env.VITE_API_URL + "/api";
+
 
 // 1. INICIAR SESIÓN
 export const login = async (email, password) => {
@@ -44,7 +45,7 @@ export const registrar = async (email, password, nombre, telefono) => {
     localStorage.setItem("rol", "comun"); // Por defecto, todo registro nuevo es común
 
     try {
-      await fetch(`${API_URL}/usuarios`, {
+      await fetch(`${API_URL}/api/usuarios`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -85,7 +86,7 @@ export const actualizarDatosPerfil = async (uid, nombre, telefono) => {
     const token = await auth.currentUser.getIdToken();
     await updateProfile(auth.currentUser, { displayName: nombre });
 
-    const respuesta = await fetch(`${API_URL}/usuarios/${uid}`, {
+    const respuesta = await fetch(`${API_URL}/api/usuarios/${uid}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
