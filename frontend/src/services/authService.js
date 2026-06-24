@@ -10,7 +10,7 @@ import {
 import { app } from "./firebaseConfig"; 
 
 export const auth = getAuth(app);
-const API_URL = "http://localhost:3000/api";
+const API_URL = import.meta.env.VITE_API_URL + "/api";
 
 // 1. INICIAR SESIÓN
 export const login = async (email, password) => {

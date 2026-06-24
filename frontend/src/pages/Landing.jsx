@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { API_URL } from '../services/config';
 
 function Landing({ libros = [], user }) {
   const navigate = useNavigate();
@@ -8,7 +9,7 @@ function Landing({ libros = [], user }) {
   useEffect(() => {
     const cargarAnuncios = async () => {
       try {
-        const res = await fetch("http://localhost:3000/api/anuncios");
+        const res = await fetch(`${API_URL}/api/anuncios`);
         if (res.ok) {
           const datos = await res.json();
           setAnuncios(datos);

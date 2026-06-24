@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, registrar, recuperarPassword } from '../services/authService';
 
+
 export default function LoginForm() {
   const [vista, setVista] = useState('login');
   

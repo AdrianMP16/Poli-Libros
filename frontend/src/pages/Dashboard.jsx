@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import ListaLibros from '../components/ListaLibros';
 import { auth, actualizarDatosPerfil, cambiarContrasenaInterna } from '../services/authService';
 import Sidebar from '../components/Sidebar';
+import { API_URL } from '../services/config';
 
 const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
@@ -34,7 +35,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
       if (pestana === 'reportes' && auth.currentUser) {
         try {
           const token = await auth.currentUser.getIdToken();
-          const res = await fetch("http://127.0.0.1:3000/api/reportes/mis-reportes", {
+          const res = await fetch(`${API_URL}/api/reportes/mis-reportes`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
 
@@ -72,7 +73,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
           const token = await auth.currentUser.getIdToken();
 
           // Hacemos la petición a nuestra API en lugar de ir a Firestore directamente
-          const res = await fetch(`http://127.0.0.1:3000/api/usuarios/${auth.currentUser.uid}`, {
+          const res = await fetch(`${API_URL}/api/usuarios/${auth.currentUser.uid}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
 
@@ -96,7 +97,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
       if (pestana === 'notificaciones' && auth.currentUser) {
         try {
           const token = await auth.currentUser.getIdToken();
-          const res = await fetch("http://127.0.0.1:3000/api/reportes/notificaciones", {
+          const res = await fetch(`${API_URL}/api/reportes/notificaciones`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
 

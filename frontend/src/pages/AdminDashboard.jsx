@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService';
 import Sidebar from '../components/Sidebar';
-import ListaLibros from '../components/ListaLibros'; // ¡No olvides importar esto!
+import ListaLibros from '../components/ListaLibros'; 
+import { API_URL } from '../services/config';
 
 // Agregamos las props que ahora mandamos desde App.jsx
 const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
@@ -27,7 +28,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     if (!window.confirm("¿Seguro que deseas descartar este reporte?")) return;
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`http://127.0.0.1:3000/api/reportes/${idReporte}/invalidar`, {
+      const res = await fetch(`${API_URL}/api/reportes/${idReporte}/invalidar`, {
         method: "PUT",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -44,7 +45,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     if (!window.confirm("¿Enviar 1 strike a este usuario? A los 3 strikes será baneado.")) return;
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`http://127.0.0.1:3000/api/usuarios/${uidUsuario}/strike`, {
+      const res = await fetch(`${API_URL}/api/usuarios/${uidUsuario}/strike`, {
         method: "POST",
         headers: { "Authorization": `Bearer ${token}` }
       });
@@ -64,7 +65,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
   const suspenderUsuario = async (uid) => {
     const token = await auth.currentUser.getIdToken();
-    await fetch(`http://127.0.0.1:3000/api/usuarios/${uid}/deshabilitar`, {
+    await fetch(`${API_URL}/api/usuarios/${uid}/deshabilitar`, {
       method: "PUT", headers: { Authorization: `Bearer ${token}` }
     });
     cargarUsuariosLocales();
@@ -74,7 +75,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     if (auth.currentUser) {
       try {
         const token = await auth.currentUser.getIdToken();
-        const res = await fetch("http://127.0.0.1:3000/api/usuarios", {
+        const res = await fetch(`${API_URL}/api/usuarios`, {
           headers: { "Authorization": `Bearer ${token}` }
         });
         if (res.ok) setUsuarios(await res.json());
@@ -90,7 +91,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
         setCargando(true);
         try {
           const token = await auth.currentUser.getIdToken();
-          const res = await fetch("http://127.0.0.1:3000/api/reportes/pendientes", {
+          const res = await fetch(`${API_URL}/api/reportes/pendientes`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
           if (res.ok) {
@@ -130,7 +131,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     setMensajeAnuncio('');
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch("http://127.0.0.1:3000/api/anuncios", {
+      const res = await fetch(`${API_URL}/api/anuncios`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
