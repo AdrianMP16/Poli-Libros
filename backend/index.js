@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 
 // Middlewares globales
 app.use(cors({
-  origin: "http://localhost:5173", "https://poli-libros-wine.vercel.app", // Permite solicitudes desde tu frontend
+  origin: ["http://localhost:5173", "https://poli-libros-wine.vercel.app"], // Permite solicitudes desde tu frontend
   methods: ["GET", "POST", "PUT", "DELETE"], // Permite los métodos HTTP
   allowedHeaders: ["Content-Type", "Authorization"], 
   credentials: true
