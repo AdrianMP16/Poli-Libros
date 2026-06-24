@@ -37,4 +37,25 @@ router.post("/", verificarAdmin, async (req, res) => {
   }
 });
 
+//Eliminar un anuncio
+router.delete("/:id", verificarAdmin, async (req, res) => {
+  try {
+    const idAnuncio = req.params.id;
+    const docRef = db.collection("anuncios").doc(idAnuncio);
+
+    // Verificamos si el anuncio existe antes de borrarlo
+    const doc = await docRef.get();
+    if (!doc.exists) {
+      return res.status(404).json({ mensaje: "El anuncio no existe o ya fue eliminado" });
+    }
+
+    // Procedemos a borrarlo de Firestore
+    await docRef.delete();
+    res.json({ mensaje: "Anuncio eliminado exitosamente" });
+
+  } catch (error) {
+    res.status(500).json({ mensaje: "Error al eliminar el anuncio", error: error.message });
+  }
+});
+
 module.exports = router;

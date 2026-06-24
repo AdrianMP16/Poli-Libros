@@ -13,6 +13,9 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   const [usuarios, setUsuarios] = useState([]);
   const [cargando, setCargando] = useState(false);
 
+  const [anuncios, setAnuncios] = useState([]); 
+  const [cargando, setCargando] = useState(false);
+
   const [libroFiltro, setLibroFiltro] = useState(null);
 
   // Estados para publicar un libro
@@ -85,6 +88,15 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     }
   };
 
+  const cargarAnuncios = async () => {
+    try {
+      const res = await fetch(`${API_URL}/api/anuncios`);
+      if (res.ok) setAnuncios(await res.json());
+    } catch (error) {
+      console.error("Error al cargar anuncios:", error);
+    }
+  };
+
   useEffect(() => {
     const cargarReportes = async () => {
       if (pestana === 'reportes' && auth.currentUser) {
@@ -109,9 +121,8 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   }, [pestana]);
 
   useEffect(() => {
-    if (pestana === 'usuarios') {
-      cargarUsuariosLocales();
-    }
+    if (pestana === 'usuarios') cargarUsuariosLocales();
+    if (pestana === 'anuncios') cargarAnuncios();
   }, [pestana]);
 
   // Manejo de libros usando las props de App.jsx
@@ -160,12 +171,33 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
       if (res.ok) {
         setMensajeAnuncio("✅ Anuncio publicado exitosamente.");
         setAnuncioData({ titulo: '', mensaje: '' });
+        cargarAnuncios(); // 👈 Refrescamos la lista para ver el nuevo anuncio
       } else {
         const errorData = await res.json();
         setMensajeAnuncio("Error en el servidor: " + errorData.mensaje);
       }
     } catch (error) {
       setMensajeAnuncio("Error de conexión: " + error.message);
+    }
+  };
+
+  const handleEliminarAnuncio = async (idAnuncio) => {
+    if (!window.confirm("¿Estás seguro de eliminar este anuncio? Desaparecerá de la vista pública.")) return;
+    try {
+      const token = await auth.currentUser.getIdToken();
+      const res = await fetch(`${API_URL}/api/anuncios/${idAnuncio}`, {
+        method: "DELETE",
+        headers: { "Authorization": `Bearer ${token}` }
+      });
+
+      if (res.ok) {
+        setAnuncios(anuncios.filter(a => a.id !== idAnuncio));
+        setMensajeAnuncio("✅ Anuncio eliminado.");
+      } else {
+        alert("No se pudo eliminar el anuncio.");
+      }
+    } catch (error) {
+      console.error("Error al eliminar el anuncio:", error);
     }
   };
 
@@ -190,14 +222,40 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
         {/* Pestaña: Anuncios */}
         {pestana === 'anuncios' && (
-          <div style={{ background: '#f9f9f9', padding: '2rem', borderRadius: '8px', border: '1px solid #eee' }}>
-            <h3 style={{ marginTop: 0, color: '#0f2027' }}>Publicar un Anuncio en el Landing</h3>
-            <form onSubmit={handleCrearAnuncio} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-              <input type="text" placeholder="Título del anuncio" value={anuncioData.titulo} onChange={(e) => setAnuncioData({ ...anuncioData, titulo: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
-              <textarea placeholder="Contenido del mensaje..." value={anuncioData.mensaje} onChange={(e) => setAnuncioData({ ...anuncioData, mensaje: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '100px' }} />
-              <button type="submit" style={{ padding: '12px', background: '#16a085', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Publicar Anuncio</button>
-              {mensajeAnuncio && <p style={{ fontWeight: 'bold' }}>{mensajeAnuncio}</p>}
-            </form>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
+            
+            {/* Formulario de creación */}
+            <div style={{ background: '#f9f9f9', padding: '2rem', borderRadius: '8px', border: '1px solid #eee' }}>
+              <h3 style={{ marginTop: 0, color: '#0f2027' }}>Publicar un Anuncio</h3>
+              <form onSubmit={handleCrearAnuncio} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+                <input type="text" placeholder="Título del anuncio" value={anuncioData.titulo} onChange={(e) => setAnuncioData({ ...anuncioData, titulo: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc' }} />
+                <textarea placeholder="Contenido del mensaje..." value={anuncioData.mensaje} onChange={(e) => setAnuncioData({ ...anuncioData, mensaje: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '100px' }} />
+                <button type="submit" style={{ padding: '12px', background: '#16a085', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Publicar Anuncio</button>
+                {mensajeAnuncio && <p style={{ fontWeight: 'bold' }}>{mensajeAnuncio}</p>}
+              </form>
+            </div>
+
+            {/* NUEVO: Lista de anuncios activos */}
+            <div>
+              <h3 style={{ marginTop: 0, color: '#0f2027' }}>Anuncios Activos</h3>
+              {anuncios.length === 0 ? (
+                <p>No hay anuncios publicados.</p>
+              ) : (
+                anuncios.map(anuncio => (
+                  <div key={anuncio.id} style={{ background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '10px' }}>
+                    <h4 style={{ margin: '0 0 5px 0' }}>{anuncio.titulo}</h4>
+                    <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#555' }}>{anuncio.mensaje}</p>
+                    <button 
+                      onClick={() => handleEliminarAnuncio(anuncio.id)}
+                      style={{ background: '#e74c3c', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
+                    >
+                      🗑️ Borrar Anuncio
+                    </button>
+                  </div>
+                ))
+              )}
+            </div>
+            
           </div>
         )}
 
