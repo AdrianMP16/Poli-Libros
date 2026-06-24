@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService'; // Mantenemos solo el servicio de Auth local
 import { API_URL } from '../services/config'; // Importamos la URL base de tu backend
+import { useNavigate } from 'react-router-dom'; // Para redireccionar después de eliminar
 
 const LibroCard = ({ libro }) => {
   const navigate = useNavigate();
