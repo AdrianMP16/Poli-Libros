@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService';
 import Sidebar from '../components/Sidebar';
-import ListaLibros from '../components/ListaLibros'; 
+import ListaLibros from '../components/ListaLibros';
 import { API_URL } from '../services/config';
 
 // Agregamos las props que ahora mandamos desde App.jsx
@@ -17,7 +17,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
   // Estados para publicar un libro
   const [formData, setFormData] = useState({
-    titulo: '', descripcion: '', precio: '', nivel: 'Nivel 1', estado: 'Nuevo', incluye_codigo: false
+    nivel: 'Begginer', descripcion: '', precio: '', incluye_codigo: false, estado_fisico: ''
   });
 
   // NUEVO: Estados para los anuncios
@@ -115,14 +115,27 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   }, [pestana]);
 
   // Manejo de libros usando las props de App.jsx
-  const handleSubmitLibro = (e) => {
+  const handleSubmitLibro = async (e) => {
     e.preventDefault();
-    if (!formData.titulo || !formData.precio) return alert("Título y precio obligatorios");
-    onCrear({
-      ...formData,
-      precio: Number(formData.precio)
-    });
-    setFormData({ titulo: '', descripcion: '', precio: '', nivel: 'Nivel 1', estado: 'Nuevo', incluye_codigo: false });
+    if (!formData.nivel || !formData.precio) return alert("Nivel y precio obligatorios");
+    if (!imagen) return alert("Por favor, sube una foto del libro.");
+
+    setSubiendo(true);
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("nivel", formData.nivel); // El nivel ahora es el "título"
+    formDataToSend.append("descripcion", formData.descripcion);
+    formDataToSend.append("precio", formData.precio);
+    formDataToSend.append("incluye_codigo", formData.incluye_codigo);
+    formDataToSend.append("estado_fisico", formData.estado_fisico);
+    formDataToSend.append("imagen", imagen);
+
+    await onCrear(formDataToSend);
+
+    setFormData({ nivel: 'Begginer', descripcion: '', precio: '', incluye_codigo: false, estado_fisico: '' });
+    setImagen(null);
+    document.getElementById('file-input-libro').value = '';
+    setSubiendo(false);
   };
 
   // NUEVO: Función para enviar el anuncio al Backend
@@ -198,25 +211,25 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
                   <h3 style={{ color: '#d35400', margin: 0 }}>🚨 Modo de Moderación Activo</h3>
                   <button onClick={() => setLibroFiltro(null)} style={{ background: 'transparent', border: 'none', fontWeight: 'bold', cursor: 'pointer' }}>✖ Cerrar Filtro</button>
                 </div>
-                
+
                 {(() => {
                   // Buscamos el libro específico en tu arreglo de libros
                   const libroEnCuestion = libros.find(l => l.id === libroFiltro || l.id_firestore === libroFiltro);
-                  
+
                   if (libroEnCuestion) {
                     return (
                       <div style={{ marginTop: '15px' }}>
                         <p><strong>Título:</strong> {libroEnCuestion.titulo}</p>
                         <p><strong>ID Vendedor:</strong> {libroEnCuestion.vendedor_id}</p>
-                        
+
                         <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                          <button 
-                            onClick={() => onEliminar(libroEnCuestion.id || libroEnCuestion.id_firestore)} 
+                          <button
+                            onClick={() => onEliminar(libroEnCuestion.id || libroEnCuestion.id_firestore)}
                             style={{ padding: '10px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                             🗑️ Borrar Publicación
                           </button>
-                          <button 
-                            onClick={() => handleAplicarStrike(libroEnCuestion.vendedor_id)} 
+                          <button
+                            onClick={() => handleAplicarStrike(libroEnCuestion.vendedor_id)}
                             style={{ padding: '10px', background: '#c0392b', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}>
                             ⚠️ Enviar 1 Strike al Usuario
                           </button>
@@ -234,21 +247,80 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
               {/* Tu formulario de crear libro de admin se queda igual */}
               <div>
                 <h3 style={{ color: '#0f2027', marginTop: 0 }}>Publicar un Libro (Admin)</h3>
-                <form onSubmit={handleSubmitLibro} style={{ display: 'flex', flexDirection: 'column', gap: '10px', background: '#f9f9f9', padding: '1.5rem', borderRadius: '8px', border: '1px solid #eee' }}>
-                  <input type="text" placeholder="Título del libro" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                  <textarea placeholder="Descripción (estado, edición, etc.)" value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px' }} />
-                  <input type="number" step="0.01" placeholder="Precio ($)" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                  <button type="submit" style={{ padding: '10px', background: '#0f2027', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer' }}>Subir Publicación</button>
+                <form onSubmit={handleSubmitLibro} style={{ display: 'flex', flexDirection: 'column', gap: '15px', background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
+                      Precio ($) *
+                      <input type="number" step="0.01" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }} placeholder="Ej: 15.50" />
+                    </label>
+                  </div>
+
+                  <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
+                    Descripción
+                    <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px', fontWeight: 'normal', fontFamily: 'inherit' }} placeholder="Detalla si tiene rayones, páginas dobladas, etc." />
+                  </label>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', alignItems: 'center' }}>
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
+                      Nivel
+                      <select value={formData.nivel} onChange={(e) => setFormData({ ...formData, nivel: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
+                        <option value="Begginer">Begginer</option>
+                        <option value="Basico 1">Básico 1</option>
+                        <option value="Basico 2">Básico 2</option>
+                        <option value="Intermedio 1">Intermedio 1</option>
+                        <option value="Intermedio 2">Intermedio 2</option>
+                        <option value="Avanzado 1">Avanzado 1</option>
+                        <option value="Avanzado 2">Avanzado 2</option>
+                        <option value="Academico 1">Académico 1</option>
+                        <option value="Academico 2">Académico 2</option>
+                        <option value="Academico 3">Académico 3</option>
+                        <option value="Academico 4">Académico 4</option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
+                      Estado
+                      <select value={formData.estado_fisico} onChange={(e) => setFormData({ ...formData, estado_fisico: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
+                        <option value="Usado">Con marcas de esfero o sellos</option>
+                        <option value="Usado 2">Con apuntes en lápiz</option>
+                      </select>
+                    </label>
+
+                    <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
+                      Foto del Libro *
+                      <input
+                        id="file-input-libro"
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => setImagen(e.target.files[0])}
+                        required
+                        style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}
+                      />
+                    </label>
+
+                    <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', color: '#333' }}>
+                      <input type="checkbox" checked={formData.incluye_codigo} onChange={(e) => setFormData({ ...formData, incluye_codigo: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
+                      Incluye código web
+                    </label>
+                  </div>
+
+                  <button type="submit" style={{ padding: '12px', background: '#f1c40f', color: '#0f2027', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '10px', transition: 'background 0.3s' }}>
+                    Publicar Libro
+                  </button>
                 </form>
+
+                <h3 style={{ borderBottom: '2px solid #0f2027', paddingBottom: '10px', marginTop: '2rem', color: '#0f2027' }}>Mis Libros Publicados</h3>
               </div>
 
               <div>
                 <h3 style={{ color: '#0f2027', marginTop: 0 }}>Catálogo Global</h3>
                 {/* Si hay un filtro activo, solo mostramos ese libro. Si no, mostramos todos */}
-                <ListaLibros 
-                  libros={libroFiltro ? libros.filter(l => l.id === libroFiltro || l.id_firestore === libroFiltro) : libros} 
-                  onEliminar={onEliminar} 
-                  onActualizar={onActualizar} 
+                <ListaLibros
+                  libros={libroFiltro ? libros.filter(l => l.id === libroFiltro || l.id_firestore === libroFiltro) : libros}
+                  onEliminar={onEliminar}
+                  onActualizar={onActualizar}
                 />
               </div>
             </div>
@@ -267,15 +339,15 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
                   <p><strong>Libro Reportado:</strong> {rep.bookTitle}</p>
                   <p><strong>Motivo del Reporte:</strong> {rep.reason}</p>
                   <p><small>ID del Infractor: {rep.reportedUser}</small></p>
-                  
+
                   {/* NUEVOS BOTONES DEL REPORTE */}
                   <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-                    <button 
+                    <button
                       onClick={() => irAGestionDeLibro(rep.bookId)}
                       style={{ padding: '8px 12px', background: '#0f2027', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                       🔍 Ver Publicación
                     </button>
-                    <button 
+                    <button
                       onClick={() => handleInvalidarReporte(rep.id)}
                       style={{ padding: '8px 12px', background: '#6c757d', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
                       ❌ Invalidar Reporte

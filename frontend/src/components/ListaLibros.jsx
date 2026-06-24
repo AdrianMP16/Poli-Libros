@@ -26,6 +26,10 @@ const ListaLibros = () => {
     obtenerLibros();
   }, []);
 
+  const handleEliminarLibro = (idEliminado) => {
+    setLibros((prevLibros) => prevLibros.filter((libro) => libro.id !== idEliminado));
+  };
+
   if (cargando) return <p style={{ textAlign: 'center' }}>Cargando libros disponibles...</p>;
 
   return (
@@ -42,7 +46,7 @@ const ListaLibros = () => {
         }}>
           {libros.map((libro) => (
             /* Pasamos el id_firestore o id según cómo venga mapeado del backend */
-            <LibroCard key={libro.id_firestore || libro.id} libro={libro} />
+            <LibroCard key={libro.id_firestore || libro.id} libro={libro} onEliminar={handleEliminarLibro} />
           ))}
         </div>
       )}
