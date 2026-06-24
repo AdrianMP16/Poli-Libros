@@ -2,6 +2,7 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { auth } from './services/authService';
 import { onAuthStateChanged, signOut } from 'firebase/auth';
+import { API_URL } from './services/config';
 
 import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx';
@@ -24,7 +25,7 @@ function App() {
           const token = tokenResult.token; // Extraemos el token directamente de aquí
 
           // 2. Verificamos la sanción en tu API backend
-          const res = await fetch("import.meta.env.VITE_API_URL/api/usuarios/verificar-sancion", {
+          const res = await fetch(`${API_URL}/api/usuarios/verificar-sancion`, {
             headers: {
               Authorization: `Bearer ${token}`
             }
@@ -66,7 +67,7 @@ function App() {
 
   const cargarLibrosDelBackend = async () => {
     try {
-      const res = await fetch("import.meta.env.VITE_API_URL/api/libros");
+      const res = await fetch(`${API_URL}/api/libros`);
       if (res.ok) {
         const datos = await res.json();
         setLibros(datos);
@@ -97,7 +98,7 @@ function App() {
         headers["Content-Type"] = "application/json";
       }
 
-      const res = await fetch("import.meta.env.VITE_API_URL/api/libros", {
+      const res = await fetch(`${API_URL}/api/libros`, {
         method: "POST",
         headers: headers,
         body: esFormData ? datosLibro : JSON.stringify(datosLibro)
@@ -119,7 +120,7 @@ function App() {
     if (!window.confirm("¿Seguro que deseas eliminar este libro?")) return;
     try {
       const token = await auth.currentUser.getIdToken();
-      const res = await fetch(`import.meta.env.VITE_API_URL/api/libros/${idLibro}`, {
+      const res = await fetch(`${API_URL}/api/libros/${idLibro}`, {
         method: "DELETE",
         headers: { "Authorization": `Bearer ${token}` }
       });
