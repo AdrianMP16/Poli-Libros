@@ -64,19 +64,20 @@ function App() {
     return () => unsubscribe();
   }, []);
 
+  const cargarLibrosDelBackend = async () => {
+    try {
+      const res = await fetch("http://localhost:3000/api/libros");
+      if (res.ok) {
+        const datos = await res.json();
+        setLibros(datos);
+      }
+    } catch (error) {
+      console.error("Error al traer los libros:", error);
+    }
+  };
+
   // 2. CARGAR LIBROS DEL BACKEND (Una sola vez)
   useEffect(() => {
-    const cargarLibrosDelBackend = async () => {
-      try {
-        const res = await fetch("http://localhost:3000/api/libros");
-        if (res.ok) {
-          const datos = await res.json();
-          setLibros(datos);
-        }
-      } catch (error) {
-        console.error("Error al traer los libros:", error);
-      }
-    };
     cargarLibrosDelBackend();
   }, []);
 

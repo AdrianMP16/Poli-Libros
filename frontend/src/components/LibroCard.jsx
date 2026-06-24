@@ -7,13 +7,12 @@ const LibroCard = ({ libro }) => {
     id_firestore,
     id,
     vendedor_id,
-    titulo, 
     descripcion, 
     precio, 
     nivel, 
-    estado, 
+    estado_fisico,   
     incluye_codigo, 
-    fotos, 
+    imagen_url,      
     fecha_publicacion 
   } = libro;
 
@@ -48,7 +47,7 @@ const LibroCard = ({ libro }) => {
           reportedBy: auth.currentUser.uid,
           reportedUser: vendedor_id, 
           bookId: bookId,                
-          bookTitle: titulo,
+          bookTitle: nivel,
           reason: motivo.trim()
         })
       });
@@ -74,19 +73,25 @@ const LibroCard = ({ libro }) => {
     return isNaN(fecha) ? '' : fecha.toLocaleDateString('es-EC', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-  const imagenPortada = fotos && fotos.length > 0 ? fotos[0] : 'https://via.placeholder.com/300x400?text=Sin+Portada';
+  
 
   return (
     <div className="libro-card">
       <div className="libro-badge-nivel">{nivel}</div>
       
       <div className="libro-imagen-contenedor">
-        <img src={imagenPortada} alt={`Portada de ${titulo}`} className="libro-imagen" />
+        {/* Utilizamos imagen_url y el SVG integrado como respaldo si la foto aún no carga */}
+        <img 
+          src={imagen_url || "data:image/svg+xml;charset=UTF-8,%3Csvg%20width%3D%22300%22%20height%3D%22400%22%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%3E%3Crect%20width%3D%22100%25%22%20height%3D%22100%25%22%20fill%3D%22%23cccccc%22%2F%3E%3Ctext%20x%3D%2250%25%22%20y%3D%2250%25%22%20font-family%3D%22sans-serif%22%20font-size%3D%2224%22%20fill%3D%22%23666666%22%20text-anchor%3D%22middle%22%20dy%3D%22.3em%22%3ESin%20Foto%3C%2Ftext%3E%3C%2Fsvg%3E"} 
+          alt={`Portada del nivel ${nivel}`} 
+          className="libro-imagen" 
+        />
       </div>
 
       <div className="libro-info">
         <div className="libro-header">
-          <h3 className="libro-titulo">{titulo}</h3>
+          {/* El nivel ahora toma el lugar del título principal */}
+          <h3 className="libro-titulo">{nivel}</h3>
           <span className="libro-precio">
             ${typeof precio === 'number' ? precio.toFixed(2) : parseFloat(precio) ? parseFloat(precio).toFixed(2) : '0.00'}
           </span>
@@ -95,9 +100,18 @@ const LibroCard = ({ libro }) => {
         <p className="libro-descripcion">{descripcion}</p>
 
         <div className="libro-detalles">
-          {/* 🛡️ PROTECCIÓN ANTI-PANTALLA EN NEGRO AQUÍ */}
-          <span className={`badge-estado estado-${(estado || "nuevo").toLowerCase().replace(/ /g, '-')}`}>
-            Estado: {estado || "No especificado"}
+          {/* Reemplazamos la vieja lógica de estado por el booleano de estado_fisico */}
+          <span 
+            className="badge-estado" 
+            style={{ 
+              backgroundColor: estado_fisico ? '#27ae60' : '#f39c12', 
+              color: 'white', 
+              padding: '4px 8px', 
+              borderRadius: '4px', 
+              fontSize: '0.85rem' 
+            }}
+          >
+            {estado_fisico ? "Buen estado físico" : "Usado / Con detalles"}
           </span>
           
           {incluye_codigo ? (
@@ -107,7 +121,7 @@ const LibroCard = ({ libro }) => {
           )}
         </div>
 
-        <div className="libro-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="libro-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
           <small className="libro-fecha">Publicado: {formatearFecha(fecha_publicacion)}</small>
           
           <div style={{ display: 'flex', gap: '8px' }}>

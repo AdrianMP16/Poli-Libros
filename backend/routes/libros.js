@@ -27,32 +27,40 @@ router.get("/", async (req, res) => {
   }
 });
 
+// 🟡 RUTA PROTEGIDA: Publicar un libro CON IMAGEN
 router.post("/", verificarAutenticado, upload.single('imagen'), async (req, res) => {
   try {
     let imagen_url = null;
 
     // 1. Si viene una imagen, la subimos a Cloudinary
     if (req.file) {
-      // Convertimos el buffer a base64 para enviarlo a Cloudinary
       const b64 = Buffer.from(req.file.buffer).toString("base64");
       const dataURI = "data:" + req.file.mimetype + ";base64," + b64;
       
       const cldRes = await cloudinary.uploader.upload(dataURI, {
-        folder: "polilibros" // Opcional: carpeta dentro de tu Cloudinary
+        folder: "polilibros"
       });
       imagen_url = cldRes.secure_url;
     }
 
-    // 2. Preparamos el objeto del libro
-    // Multer convierte los campos de texto del FormData a strings, así que parseamos los necesarios
+    // 2. Preparamos el objeto del libro con tu nueva estructura
+    // FormData envía todo como "String", así que convertimos los booleanos y números
     const nuevoLibro = {
-      titulo: req.body.titulo,
+      // Como me dijiste que el nivel es el título, lo guardamos en ambos para que
+      // no se rompan tus tarjetas de React que buscan "libro.titulo"
+      nivel: req.body.nivel,
+      
       descripcion: req.body.descripcion || "",
       precio: Number(req.body.precio),
-      nivel: req.body.nivel,
-      estado: req.body.estado,
-      incluye_codigo: req.body.incluye_codigo === "true", // FormData envía strings
-      imagen_url: imagen_url, 
+      
+      // Convertimos los strings "true"/"false" a verdaderos booleanos
+      incluye_codigo: req.body.incluye_codigo === "true",
+      estado_fisico: req.body.estado_fisico === "true",
+      
+      // NUEVO: El estado por defecto que manejará tu historial de ventas
+      disponibilidad: true, 
+      
+      imagen_url: imagen_url || "", 
       vendedor_id: req.user.uid,
       fecha_publicacion: new Date().toISOString()
     };
@@ -61,6 +69,7 @@ router.post("/", verificarAutenticado, upload.single('imagen'), async (req, res)
     const docRef = await db.collection("libros").add(nuevoLibro);
     res.status(201).json({ mensaje: "Libro publicado", id: docRef.id });
   } catch (error) {
+    console.error("🔥 Error crítico al publicar:", error); 
     res.status(500).json({ mensaje: "Error al publicar", error: error.message });
   }
 });

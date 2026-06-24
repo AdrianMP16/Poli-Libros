@@ -12,7 +12,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
 
   const [formData, setFormData] = useState({
-    titulo: '', descripcion: '', precio: '', nivel: 'Nivel 1', estado: 'Nuevo', incluye_codigo: false, fotos: []
+    nivel: 'Begginer', descripcion: '', precio: '', incluye_codigo: false, estado_fisico: ''
   });
   const [perfilData, setPerfilData] = useState({ nombre: auth.currentUser?.displayName || '', telefono: '' });
   const [passwordData, setPasswordData] = useState({ nueva: '', confirmar: '' });
@@ -114,26 +114,22 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
   const handleSubmitLibro = async (e) => {
     e.preventDefault();
-    if (!formData.titulo || !formData.precio) return alert("Título y precio obligatorios");
+    if (!formData.nivel || !formData.precio) return alert("Nivel y precio obligatorios");
     if (!imagen) return alert("Por favor, sube una foto del libro.");
 
     setSubiendo(true);
 
-    // Creamos el FormData para empaquetar texto + archivo
     const formDataToSend = new FormData();
-    formDataToSend.append("titulo", formData.titulo);
+    formDataToSend.append("nivel", formData.nivel); // El nivel ahora es el "título"
     formDataToSend.append("descripcion", formData.descripcion);
     formDataToSend.append("precio", formData.precio);
-    formDataToSend.append("nivel", formData.nivel);
-    formDataToSend.append("estado", formData.estado);
     formDataToSend.append("incluye_codigo", formData.incluye_codigo);
-    formDataToSend.append("imagen", imagen); // Agregamos el archivo
+    formDataToSend.append("estado_fisico", formData.estado_fisico);
+    formDataToSend.append("imagen", imagen); 
 
-    // Enviamos el FormData a la función global en App.jsx
     await onCrear(formDataToSend);
 
-    // Limpiamos todo
-    setFormData({ titulo: '', descripcion: '', precio: '', nivel: 'Nivel 1', estado: 'Nuevo', incluye_codigo: false, fotos: [] });
+    setFormData({ nivel: 'Begginer', descripcion: '', precio: '', incluye_codigo: false, estado_fisico: '' });
     setImagen(null);
     document.getElementById('file-input-libro').value = '';
     setSubiendo(false);
@@ -176,6 +172,9 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     }
   };
 
+  const misLibrosActivos = libros.filter(l => l.vendedor_id === auth.currentUser?.uid && l.disponibilidad !== false);
+  const misLibrosVendidos = libros.filter(l => l.vendedor_id === auth.currentUser?.uid && l.disponibilidad === false);
+
 
   return (
     <div style={{ display: 'flex' }}>
@@ -217,10 +216,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
             <form onSubmit={handleSubmitLibro} style={{ display: 'flex', flexDirection: 'column', gap: '15px', background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
-                  Título del Libro *
-                  <input type="text" value={formData.titulo} onChange={(e) => setFormData({ ...formData, titulo: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }} placeholder="Ej: Top Notch 1 (Tercera Edición)" />
-                </label>
 
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
                   Precio ($) *
@@ -253,10 +248,9 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
                 <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
                   Estado
-                  <select value={formData.estado} onChange={(e) => setFormData({ ...formData, estado: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
-                    <option value="Como Nuevo">Como Nuevo (Sin rallones con esfero)</option>
-                    <option value="Usado">Usado (Con rayones de esfero)</option>
-                    <option value="Usado 2">Usado (Con apuntes en lápiz)</option>
+                  <select value={formData.estado_fisico} onChange={(e) => setFormData({ ...formData, estado_fisico: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
+                    <option value="Usado">Con marcas de esfero o sellos</option>
+                    <option value="Usado 2">Con apuntes en lápiz</option>
                   </select>
                 </label>
 
