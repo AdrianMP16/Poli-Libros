@@ -42,6 +42,9 @@ app.get("/", (req, res) => {
   res.send("El backend de PoliLibros está activo y escuchando peticiones.");
 });
 
+console.log("Backend iniciado");
+console.log("Ruta Stripe: POST /api/pagos/create-checkout-session");
+console.log("Ruta Webhook: POST /api/pagos/webhook");
 // Inicio del servidor
 app.listen(PORT, () => {
   console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
