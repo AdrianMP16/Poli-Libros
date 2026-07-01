@@ -8,6 +8,8 @@ import Login from './pages/Login.jsx';
 import Landing from './pages/Landing.jsx';
 import Dashboard from './pages/Dashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
+import Success from "./pages/Success";
+import Cancel from "./pages/Cancel";
 
 function App() {
   const [user, setUser] = useState(null);
@@ -85,10 +87,10 @@ function App() {
   const handleCrearLibro = async (datosLibro) => {
     try {
       const token = await auth.currentUser.getIdToken();
-      
+
       // Identificamos si estamos enviando un FormData (con imagen) o un JSON normal
       const esFormData = datosLibro instanceof FormData;
-      
+
       const headers = {
         "Authorization": `Bearer ${token}`
       };
@@ -106,7 +108,7 @@ function App() {
 
       if (res.ok) {
         alert("Libro publicado con éxito");
-        cargarLibrosDelBackend(); 
+        cargarLibrosDelBackend();
       } else {
         const errorData = await res.json();
         alert("Error al publicar: " + errorData.mensaje);
@@ -181,22 +183,24 @@ function App() {
         {/* Dashboard de Usuario Común */}
         <Route
           path="/dashboard"
-          element={ user && !esAdmin ? (
-              <Dashboard libros={libros || []} user={user} onCrear={handleCrearLibro} onEliminar={handleEliminarLibro} />
-            ) : (esAdmin ? <Navigate to="/admin" /> : <Navigate to="/login" />)
+          element={user && !esAdmin ? (
+            <Dashboard libros={libros || []} user={user} onCrear={handleCrearLibro} onEliminar={handleEliminarLibro} />
+          ) : (esAdmin ? <Navigate to="/admin" /> : <Navigate to="/login" />)
           }
         />
 
         {/* Dashboard de Administrador */}
         <Route
           path="/admin"
-          element={ user && esAdmin ? (
-              <AdminDashboard libros={libros || []} user={user} onCrear={handleCrearLibro} onEliminar={handleEliminarLibro} />
-            ) : (user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />)
+          element={user && esAdmin ? (
+            <AdminDashboard libros={libros || []} user={user} onCrear={handleCrearLibro} onEliminar={handleEliminarLibro} />
+          ) : (user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />)
           }
         />
 
         <Route path="*" element={<Navigate to="/" />} />
+        <Route path="/success" element={<Success />} />
+        <Route path="/cancel" element={<Cancel />} />
       </Routes>
     </div>
   );
