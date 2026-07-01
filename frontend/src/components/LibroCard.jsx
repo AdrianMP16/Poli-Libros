@@ -113,20 +113,31 @@ const LibroCard = ({ libro }) => {
       // El carrito solo contiene el libro actual
       const cart = [{ id: id, quantity: 1 }];
 
-      const res = await fetch(`${API_URL}/api/create-checkout-session`, {
-        method: "POST",
-        headers: { 
-          "Content-Type": "application/json",
-          // Es buena práctica enviar el token para que el backend valide quién compra
-          "Authorization": `Bearer ${await usuarioActual.getIdToken()}` 
-        },
-        body: JSON.stringify({ cart, studentName })
-      });
+      const res = await fetch(
+        `${API_URL}/api/pagos/create-checkout-session`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${await usuarioActual.getIdToken()}`
+          },
+          body: JSON.stringify({ cart, studentName })
+        }
+      );
 
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Error creando la sesión de pago");
+      const text = await res.text();
 
-      // Redirigir a la pasarela de Stripe
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error(`El servidor respondió: ${text}`);
+      }
+
+      if (!res.ok) {
+        throw new Error(data.error || "Error creando la sesión");
+      }
+
       window.location.href = data.url;
     } catch (err) {
       console.error("Error al procesar el pago:", err);
@@ -285,7 +296,7 @@ const LibroCard = ({ libro }) => {
             >
               💬 Chat
             </button>
-            
+
             <button
               onClick={handleComprar}
               style={{
