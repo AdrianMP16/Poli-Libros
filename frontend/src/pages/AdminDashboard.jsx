@@ -6,13 +6,14 @@ import { API_URL } from '../services/config';
 
 // Agregamos las props que ahora mandamos desde App.jsx
 const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
+
   const [pestana, setPestana] = useState('reportes');
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
 
   const [reportes, setReportes] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
 
-  const [anuncios, setAnuncios] = useState([]); 
+  const [anuncios, setAnuncios] = useState([]);
   const [cargando, setCargando] = useState(false);
 
   const [libroFiltro, setLibroFiltro] = useState(null);
@@ -100,6 +101,8 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     const cargarReportes = async () => {
       if (pestana === 'reportes' && auth.currentUser) {
         setCargando(true);
+        // const token = await auth.currentUser.getIdToken();
+        // console.log("MI TOKEN:", token);
         try {
           const token = await auth.currentUser.getIdToken();
           const res = await fetch(`${API_URL}/api/reportes/pendientes`, {
@@ -148,7 +151,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     setSubiendo(false);
   };
 
-  // NUEVO: Función para enviar el anuncio al Backend
+
   const handleCrearAnuncio = async (e) => {
     e.preventDefault();
     setMensajeAnuncio('');
@@ -222,7 +225,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
         {/* Pestaña: Anuncios */}
         {pestana === 'anuncios' && (
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            
+
             {/* Formulario de creación */}
             <div style={{ background: '#f9f9f9', padding: '2rem', borderRadius: '8px', border: '1px solid #eee' }}>
               <h3 style={{ marginTop: 0, color: '#0f2027' }}>Publicar un Anuncio</h3>
@@ -244,7 +247,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
                   <div key={anuncio.id} style={{ background: '#fff', padding: '15px', borderRadius: '8px', border: '1px solid #ccc', marginBottom: '10px' }}>
                     <h4 style={{ margin: '0 0 5px 0' }}>{anuncio.titulo}</h4>
                     <p style={{ margin: '0 0 10px 0', fontSize: '0.9rem', color: '#555' }}>{anuncio.mensaje}</p>
-                    <button 
+                    <button
                       onClick={() => handleEliminarAnuncio(anuncio.id)}
                       style={{ background: '#e74c3c', color: '#fff', border: 'none', padding: '5px 10px', borderRadius: '4px', cursor: 'pointer', fontSize: '0.8rem' }}
                     >
@@ -254,7 +257,7 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
                 ))
               )}
             </div>
-            
+
           </div>
         )}
 

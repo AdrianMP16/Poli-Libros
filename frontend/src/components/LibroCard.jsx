@@ -101,6 +101,39 @@ const LibroCard = ({ libro }) => {
     }
   };
 
+  const handleComprar = async () => {
+    if (!usuarioActual) {
+      return alert("Debes iniciar sesión para comprar este libro.");
+    }
+
+    try {
+      // Usamos el nombre del usuario logueado en Firebase o un valor por defecto
+      const studentName = usuarioActual.displayName || "Estudiante";
+
+      // El carrito solo contiene el libro actual
+      const cart = [{ id: id, quantity: 1 }];
+
+      const res = await fetch(`${API_URL}/api/create-checkout-session`, {
+        method: "POST",
+        headers: { 
+          "Content-Type": "application/json",
+          // Es buena práctica enviar el token para que el backend valide quién compra
+          "Authorization": `Bearer ${await usuarioActual.getIdToken()}` 
+        },
+        body: JSON.stringify({ cart, studentName })
+      });
+
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Error creando la sesión de pago");
+
+      // Redirigir a la pasarela de Stripe
+      window.location.href = data.url;
+    } catch (err) {
+      console.error("Error al procesar el pago:", err);
+      alert("Hubo un problema al iniciar el pago: " + err.message);
+    }
+  };
+
   const formatearFecha = (timestamp) => {
     if (!timestamp) return '';
     // Si el backend envía el objeto Timestamp estructurado o un string ISO
@@ -213,7 +246,7 @@ const LibroCard = ({ libro }) => {
             borderRadius: '12px',
             boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
             padding: '20px',
-            zIndex: 100, // Nos aseguramos que flote por encima de otras tarjetas
+            zIndex: 100,
             display: 'flex',
             flexDirection: 'column',
             justifyContent: 'space-between'
@@ -228,31 +261,52 @@ const LibroCard = ({ libro }) => {
             </p>
           </div>
 
-          <button
-            onClick={() => {
-              // Lógica futura para abrir el chat
-              console.log("Abrir chat para el libro:", id);
-            }}
-            style={{
-              backgroundColor: '#0d6efd',
-              color: 'white',
-              border: 'none',
-              padding: '12px',
-              borderRadius: '6px',
-              cursor: 'pointer',
-              fontWeight: 'bold',
-              fontSize: '1rem',
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'background-color 0.2s'
-            }}
-            onMouseOver={(e) => e.target.style.backgroundColor = '#0b5ed7'}
-            onMouseOut={(e) => e.target.style.backgroundColor = '#0d6efd'}
-          >
-            💬 Chat
-          </button>
+          {/* 2. NUEVO CONTENEDOR: Botones de Chat y Compra */}
+          <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+            <button
+              onClick={() => {
+                console.log("Abrir chat para el libro:", id);
+              }}
+              style={{
+                flex: 1,
+                backgroundColor: '#0d6efd',
+                color: 'white',
+                border: 'none',
+                padding: '12px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '0.9rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              💬 Chat
+            </button>
+            
+            <button
+              onClick={handleComprar}
+              style={{
+                flex: 1,
+                backgroundColor: '#635bff', // Color de marca de Stripe
+                color: 'white',
+                border: 'none',
+                padding: '12px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                fontSize: '0.9rem',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                gap: '5px'
+              }}
+            >
+              💳 Comprar
+            </button>
+          </div>
         </div>
       )}
 

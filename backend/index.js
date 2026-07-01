@@ -13,19 +13,29 @@ app.use(cors({
   allowedHeaders: ["Content-Type", "Authorization"], 
   credentials: true
 }));
-app.use(express.json());
+
 
 // IMPORTACIÓN DE RUTAS
 const rutasLibros = require("./routes/libros");
 const rutasReportes = require("./routes/reportes");
 const rutasUsuarios = require("./routes/usuarios");
 const rutasAnuncios = require("./routes/anuncios");
+const rutasPagos = require("./routes/pagos");
+
+app.post(
+  "/api/pagos/webhook", 
+  express.raw({ type: "application/json" }), 
+  rutasPagos.manejarWebhook
+);
+
+app.use(express.json());
 
 // ENRUTAMIENTO PRINCIPAL
 app.use("/api/libros", rutasLibros);
 app.use("/api/reportes", rutasReportes);
 app.use("/api/usuarios", rutasUsuarios);
 app.use("/api/anuncios", rutasAnuncios);
+app.use("/api/pagos", rutasPagos.router);
 
 // RUTA ADICIONAL PARA SABER QUE ESTÁ ACTIVO EN VEZ DE LANZAR "CANNOT GET"
 app.get("/", (req, res) => {
