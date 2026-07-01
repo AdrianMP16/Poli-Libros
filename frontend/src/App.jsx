@@ -197,10 +197,10 @@ function App() {
           ) : (user ? <Navigate to="/dashboard" /> : <Navigate to="/login" />)
           }
         />
-
-        <Route path="*" element={<Navigate to="/" />} />
         <Route path="/success" element={<Success />} />
         <Route path="/cancel" element={<Cancel />} />
+        
+        <Route path="*" element={<Navigate to="/" />} />
       </Routes>
     </div>
   );
