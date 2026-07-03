@@ -73,7 +73,9 @@ const LibroCard = ({ libro }) => {
     socketRef.current.emit("enviar-mensaje", {
       sala,
       mensaje: nuevoMensaje,
-      remitente: usuarioActual.uid
+      remitente: usuarioActual.uid,
+      receptorId: vendedor_id,
+      libroId: id,
     });
     setNuevoMensaje("");
   };
