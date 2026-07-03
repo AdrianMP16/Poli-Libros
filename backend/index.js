@@ -54,6 +54,6 @@ app.get("/", (req, res) => {
 });
 
 // Inicio del servidor
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Servidor y WebSocket corriendo en http://localhost:${PORT}`);
 });
