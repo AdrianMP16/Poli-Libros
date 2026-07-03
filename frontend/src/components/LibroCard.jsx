@@ -2,11 +2,65 @@ import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService'; // Mantenemos solo el servicio de Auth local
 import { API_URL } from '../services/config'; // Importamos la URL base de tu backend
 import { useNavigate } from 'react-router-dom'; // Para redireccionar después de eliminar
+import { io } from 'socket.io-client';
 
 const LibroCard = ({ libro }) => {
   const navigate = useNavigate();
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
+  const socketRef = useRef(null);
+  const mensajesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    mensajesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [mensajes]);
+
+  // Lógica para inicializar el chat cuando se abre
+  useEffect(() => {
+    if (chatAbierto && usuarioActual) {
+      // Conectar al backend 
+      socketRef.current = io(API_URL.replace('/api', ''));
+
+      // Solicitar unirse a la sala
+      socketRef.current.emit("unirse-sala", {
+        libroId: id, // Usamos la variable 'id' desestructurada directamente
+        compradorId: usuarioActual.uid
+      });
+
+      // 1. NUEVO: Recibir todo el historial de la base de datos
+      socketRef.current.on("historial-cargado", (historial) => {
+        setMensajes(historial);
+      });
+
+      // 2. Recibir nuevos mensajes en tiempo real
+      socketRef.current.on("nuevo-mensaje", (mensaje) => {
+        setMensajes((prev) => [...prev, mensaje]);
+      });
+
+      return () => {
+        socketRef.current.disconnect();
+      };
+    }
+  }, [chatAbierto, usuarioActual, id]);
+
+  const enviarMensajeChat = () => {
+    if (nuevoMensaje.trim() === "") return;
+    const sala = `chat_${libro.id}_${usuarioActual.uid}`;
+
+    socketRef.current.emit("enviar-mensaje", {
+      sala,
+      mensaje: nuevoMensaje,
+      remitente: usuarioActual.uid
+    });
+    setNuevoMensaje("");
+  };
+
+
+
 
   // Desestructuramos, manejando id_firestore (del backend) o id tradicional
   const {
@@ -57,7 +111,8 @@ const LibroCard = ({ libro }) => {
           reportedUser: vendedor_id,
           bookId: id,
           bookTitle: nivel,
-          reason: motivo.trim()
+          reason: motivo.trim(),
+          chatHistory: mensajes
         })
       });
 
@@ -263,61 +318,134 @@ const LibroCard = ({ libro }) => {
             justifyContent: 'space-between'
           }}
         >
-          <div>
-            <h4 style={{ margin: '0 0 10px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '8px', color: '#333' }}>
-              Descripción del Vendedor
-            </h4>
-            <p style={{ fontSize: '0.95rem', color: '#555', lineHeight: '1.5', overflowY: 'auto', maxHeight: '250px' }}>
-              {descripcion || "El vendedor no proporcionó una descripción adicional para este libro."}
-            </p>
-          </div>
+          {chatAbierto ? (
+            /* =========================================
+               VISTA 1: INTERFAZ DEL CHAT EN VIVO
+               ========================================= */
+            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
+              {/* Cabecera del chat */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px', marginBottom: '10px' }}>
+                <h4 style={{ margin: 0, color: '#333' }}>Chat con Vendedor</h4>
+                <button
+                  onClick={() => setChatAbierto(false)}
+                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#888' }}
+                  title="Volver a detalles"
+                >
+                  ✖
+                </button>
+              </div>
 
-          {/* 2. NUEVO CONTENEDOR: Botones de Chat y Compra */}
-          <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-            <button
-              onClick={() => {
-                console.log("Abrir chat para el libro:", id);
-              }}
-              style={{
-                flex: 1,
-                backgroundColor: '#0d6efd',
-                color: 'white',
-                border: 'none',
-                padding: '12px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '0.9rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '5px'
-              }}
-            >
-              💬 Chat
-            </button>
+              {/* Contenedor de mensajes */}
+              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '5px', marginBottom: '10px' }}>
+                {mensajes.length === 0 ? (
+                  <p style={{ fontSize: '0.85rem', color: '#aaa', textAlign: 'center', marginTop: '20px' }}>
+                    Escribe un mensaje para consultar sobre este libro...
+                  </p>
+                ) : (
+                  mensajes.map((msg, index) => {
+                    const esMio = msg.remitente === usuarioActual?.uid;
+                    return (
+                      <div key={index} style={{
+                        alignSelf: esMio ? 'flex-end' : 'flex-start',
+                        backgroundColor: esMio ? '#0d6efd' : '#f1f3f5',
+                        color: esMio ? 'white' : '#333',
+                        padding: '8px 12px',
+                        borderRadius: '12px',
+                        maxWidth: '85%',
+                        fontSize: '0.85rem',
+                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
+                      }}>
+                        <span style={{ display: 'block', wordWrap: 'break-word' }}>{msg.texto}</span>
+                        <small style={{ fontSize: '0.65rem', opacity: 0.7, textAlign: esMio ? 'right' : 'left', display: 'block', marginTop: '4px' }}>
+                          {msg.hora}
+                        </small>
+                      </div>
+                    );
+                  })
+                )}
 
-            <button
-              onClick={handleComprar}
-              style={{
-                flex: 1,
-                backgroundColor: '#635bff', // Color de marca de Stripe
-                color: 'white',
-                border: 'none',
-                padding: '12px',
-                borderRadius: '6px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-                fontSize: '0.9rem',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center',
-                gap: '5px'
-              }}
-            >
-              💳 Comprar
-            </button>
-          </div>
+                {/* 👈 NUEVO: El div invisible que sirve como ancla para el scroll */}
+                <div ref={mensajesEndRef} />
+
+              </div>
+
+              {/* Input y botón de enviar */}
+              <div style={{ display: 'flex', gap: '5px' }}>
+                <input
+                  type="text"
+                  value={nuevoMensaje}
+                  onChange={(e) => setNuevoMensaje(e.target.value)}
+                  onKeyPress={(e) => e.key === 'Enter' && enviarMensajeChat()}
+                  placeholder="Escribe aquí..."
+                  style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '0.85rem', outline: 'none' }}
+                />
+                <button
+                  onClick={enviarMensajeChat}
+                  style={{ backgroundColor: '#0d6efd', color: 'white', border: 'none', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                >
+                  ➤
+                </button>
+              </div>
+            </div>
+          ) : (
+            /* =========================================
+               VISTA 2: DETALLES DEL LIBRO Y BOTONES
+               ========================================= */
+            <>
+              <div>
+                <h4 style={{ margin: '0 0 10px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '8px', color: '#333' }}>
+                  Descripción del Vendedor
+                </h4>
+                <p style={{ fontSize: '0.95rem', color: '#555', lineHeight: '1.5', overflowY: 'auto', maxHeight: '250px' }}>
+                  {descripcion || "El vendedor no proporcionó una descripción adicional para este libro."}
+                </p>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
+                <button
+                  onClick={() => setChatAbierto(true)}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#0d6efd',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  💬 Chat
+                </button>
+
+                <button
+                  onClick={handleComprar}
+                  style={{
+                    flex: 1,
+                    backgroundColor: '#635bff',
+                    color: 'white',
+                    border: 'none',
+                    padding: '12px',
+                    borderRadius: '6px',
+                    cursor: 'pointer',
+                    fontWeight: 'bold',
+                    fontSize: '0.9rem',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    gap: '5px'
+                  }}
+                >
+                  💳 Comprar
+                </button>
+              </div>
+            </>
+          )}
         </div>
       )}
 

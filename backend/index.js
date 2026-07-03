@@ -2,15 +2,26 @@
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+const server = http.createServer(app);
+
+const io = new Server(server, {
+  cors: {
+    origin: ["http://localhost:5173", "https://poli-libros-wine.vercel.app"],
+    methods: ["GET", "POST"]
+  }
+});
 
 // Middlewares globales
 app.use(cors({
   origin: ["http://localhost:5173", "https://poli-libros-wine.vercel.app"], // Permite solicitudes desde tu frontend
   methods: ["GET", "POST", "PUT", "DELETE"], // Permite los métodos HTTP
-  allowedHeaders: ["Content-Type", "Authorization"], 
+  allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
@@ -21,12 +32,12 @@ const rutasReportes = require("./routes/reportes");
 const rutasUsuarios = require("./routes/usuarios");
 const rutasAnuncios = require("./routes/anuncios");
 const rutasPagos = require("./routes/pagos");
+const chatSockets = require("./routes/chat");
 
-app.post(
-  "/api/pagos/webhook", 
-  express.raw({ type: "application/json" }), 
-  rutasPagos.manejarWebhook
-);
+// Inicializar el chat con Socket.IO
+chatSockets(io);
+
+app.post("/api/pagos/webhook",express.raw({ type: "application/json" }),rutasPagos.manejarWebhook);
 
 app.use(express.json());
 
@@ -42,10 +53,7 @@ app.get("/", (req, res) => {
   res.send("El backend de PoliLibros está activo y escuchando peticiones.");
 });
 
-console.log("Backend iniciado");
-console.log("Ruta Stripe: POST /api/pagos/create-checkout-session");
-console.log("Ruta Webhook: POST /api/pagos/webhook");
 // Inicio del servidor
 app.listen(PORT, () => {
-  console.log(`Servidor Express corriendo en http://localhost:${PORT}`);
+  console.log(`Servidor y WebSocket corriendo en http://localhost:${PORT}`);
 });
