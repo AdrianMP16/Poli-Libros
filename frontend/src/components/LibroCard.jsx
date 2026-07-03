@@ -8,6 +8,11 @@ const LibroCard = ({ libro }) => {
   const navigate = useNavigate();
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
+
+  const [chatAbierto, setChatAbierto] = useState(false);
+  const [mensajes, setMensajes] = useState([]);
+  const [nuevoMensaje, setNuevoMensaje] = useState("");
+
   const socketRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
