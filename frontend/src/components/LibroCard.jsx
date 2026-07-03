@@ -16,6 +16,20 @@ const LibroCard = ({ libro }) => {
   const socketRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
+  // Desestructuramos, manejando id_firestore (del backend) o id tradicional
+  const {
+    id,
+    vendedor_id,
+    descripcion,
+    precio,
+    nivel,
+    estado_fisico,
+    incluye_codigo,
+    imagen_url,
+    fecha_publicacion,
+    disponibilidad
+  } = libro;
+
   const scrollToBottom = () => {
     mensajesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
@@ -63,23 +77,6 @@ const LibroCard = ({ libro }) => {
     });
     setNuevoMensaje("");
   };
-
-
-
-
-  // Desestructuramos, manejando id_firestore (del backend) o id tradicional
-  const {
-    id,
-    vendedor_id,
-    descripcion,
-    precio,
-    nivel,
-    estado_fisico,
-    incluye_codigo,
-    imagen_url,
-    fecha_publicacion,
-    disponibilidad
-  } = libro;
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
