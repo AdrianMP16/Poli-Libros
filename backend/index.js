@@ -25,6 +25,7 @@ app.use(cors({
   credentials: true
 }));
 
+app.use(express.json());
 
 // IMPORTACIÓN DE RUTAS
 const rutasLibros = require("./routes/libros");
@@ -39,8 +40,6 @@ const chatIA = require("./routes/chatIA");
 chatSockets(io);
 
 app.post("/api/pagos/webhook",express.raw({ type: "application/json" }),rutasPagos.manejarWebhook);
-
-app.use(express.json());
 
 // ENRUTAMIENTO PRINCIPAL
 app.use("/api/libros", rutasLibros);
