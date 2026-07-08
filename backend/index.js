@@ -33,6 +33,7 @@ const rutasUsuarios = require("./routes/usuarios");
 const rutasAnuncios = require("./routes/anuncios");
 const rutasPagos = require("./routes/pagos");
 const chatSockets = require("./routes/chat");
+const chatIA = require("./routes/chatIA");
 
 // Inicializar el chat con Socket.IO
 chatSockets(io);
@@ -47,6 +48,7 @@ app.use("/api/reportes", rutasReportes);
 app.use("/api/usuarios", rutasUsuarios);
 app.use("/api/anuncios", rutasAnuncios);
 app.use("/api/pagos", rutasPagos.router);
+app.use("/api/chatIA", chatIA);
 
 // RUTA ADICIONAL PARA SABER QUE ESTÁ ACTIVO EN VEZ DE LANZAR "CANNOT GET"
 app.get("/", (req, res) => {

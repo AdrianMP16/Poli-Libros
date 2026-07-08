@@ -10,6 +10,7 @@ import Dashboard from './pages/Dashboard.jsx';
 import AdminDashboard from './pages/AdminDashboard.jsx';
 import Success from "./pages/Success";
 import Cancel from "./pages/Cancel";
+import ChatAssistant from './components/ChatAssistant.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -152,22 +153,6 @@ function App() {
     );
   }
 
-  if (cargando) {
-    return (
-      <div style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        backgroundColor: '#1a1a1a',
-        color: '#fff',
-        fontFamily: 'sans-serif'
-      }}>
-        <h3>Cargando sesión...</h3>
-      </div>
-    );
-  }
-
   return (
     <div className="App">
 
@@ -202,6 +187,7 @@ function App() {
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>
+      <ChatAssistant />
     </div>
   );
 }
