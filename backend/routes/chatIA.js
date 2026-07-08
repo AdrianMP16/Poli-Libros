@@ -4,6 +4,17 @@ const { HfInference } = require('@huggingface/inference');
 
 const hf = new HfInference(process.env.HF_TOKEN);
 
+const keywords = [
+    'libro', 'libros', 'ingles', 'compra', 'venta', 'plataforma', 
+    'polilibros', 'precio', 'usuario', 'cuenta', 'registro', 'envio'
+];
+
+function esRelevante(mensaje) {
+    const texto = mensaje.toLowerCase();
+    // Verifica si al menos una de las palabras clave existe en el mensaje
+    return keywords.some(keyword => texto.includes(keyword));
+}
+
 router.post('/', async (req, res) => {
     try {
         const { userMessage } = req.body;
@@ -12,12 +23,18 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ error: "El mensaje es requerido" });
         }
 
+        if (!esRelevante(userMessage)) {
+            return res.json({ 
+                reply: "Lo siento, solo puedo ayudarte con temas relacionados a Polilibros (libros, compra, venta, etc.)." 
+            });
+        }
+
         const response = await hf.chatCompletion({
             model: "meta-llama/Llama-3.1-8B-Instruct",
             messages: [
                 {
                     role: "system",
-                    content: "Eres un asistente virtual amigable para Polilibros, un marketplace de compra y venta de libros de inglés de segunda mano. Tu objetivo es ayudar a los estudiantes a encontrar materiales de estudio adecuados para su nivel y responder dudas sobre cómo funciona la plataforma. Sé conciso y amable. Adicionalmente, no des más información de la necesaria, no respondas preguntas que no tienen nada que ver con el propósito de la página web, y no inventes información. Si no sabes la respuesta, di que no sabes."
+                    content: "Eres un asistente exclusivo de Polilibros, una plataforma para la compra y venta de libros de inglés. Tus reglas estrictas son: 1. SOLO respondes temas relacionados con Polilibros, libros de inglés, y el funcionamiento del marketplace. 2. Si el usuario pregunta sobre cualquier otro tema (política, deportes, consejos generales, etc.), responde amablemente: 'Lo siento, solo puedo ayudarte con temas relacionados a Polilibros'. 3. NO respondas preguntas fuera de este contexto bajo ninguna circunstancia. 4. Si no conoces la respuesta sobre la plataforma, di que no sabes."
                 },
                 {
                     role: "user",
@@ -25,7 +42,7 @@ router.post('/', async (req, res) => {
                 }
             ],
             max_tokens: 200,
-            temperature: 0.7
+            temperature: 0.4
         });
 
         const botReply = response.choices?.[0]?.message?.content || "Lo siento, no pude generar una respuesta.";
