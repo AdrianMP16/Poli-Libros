@@ -24,11 +24,11 @@ router.post('/', async (req, res) => {
                     content: userMessage 
                 }
             ],
-            max_tokens: 400, 
+            max_tokens: 200, 
             temperature: 0.7 
         });
 
-        const botReply = response.choices[0].message.content;
+        const botReply = response.choices?.[0]?.message?.content || "Lo siento, no pude generar una respuesta.";
         res.json({ reply: botReply });
 
     } catch (error) {

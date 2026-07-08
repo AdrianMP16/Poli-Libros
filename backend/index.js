@@ -40,6 +40,9 @@ const chatIA = require("./routes/chatIA");
 chatSockets(io);
 
 app.post("/api/pagos/webhook",express.raw({ type: "application/json" }),rutasPagos.manejarWebhook);
+app.post("/api/prueba", (req, res) => {
+    res.json({ mensaje: "El backend funciona correctamente" });
+});
 
 // ENRUTAMIENTO PRINCIPAL
 app.use("/api/libros", rutasLibros);
