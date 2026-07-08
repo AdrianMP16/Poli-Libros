@@ -1,4 +1,4 @@
-const API_URL = "https://poli-libros-backend.onrender.com/api/chatIA";
+const API_URL = `${process.env.VITE_API_URL}/api/chatIA`;
 
 export const sendMessageToAssistant = async (message) => {
     try {
