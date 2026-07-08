@@ -1,8 +1,8 @@
-const API_URL = `${process.env.VITE_API_URL}/api/chatIA`;
+import { API_URL } from './config';
 
 export const sendMessageToAssistant = async (message) => {
     try {
-        const response = await fetch(API_URL, {
+        const response = await fetch(`${API_URL}/api/chatIA`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
