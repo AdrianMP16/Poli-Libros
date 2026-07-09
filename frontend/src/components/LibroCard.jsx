@@ -1,10 +1,12 @@
+// src/components/LibroCard.jsx
 import React, { useState, useEffect, useRef } from 'react';
-import { auth } from '../services/authService'; // Mantenemos solo el servicio de Auth local
-import { API_URL } from '../services/config'; // Importamos la URL base de tu backend
-import { useNavigate } from 'react-router-dom'; // Para redireccionar después de eliminar
+import { auth } from '../services/authService'; 
+import { API_URL } from '../services/config'; 
+import { useNavigate } from 'react-router-dom'; 
 import { io } from 'socket.io-client';
+import '../styles/LibroCard.css';
 
-const LibroCard = ({ libro }) => {
+const LibroCard = ({ libro, onEliminar }) => {
   const navigate = useNavigate();
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
@@ -16,7 +18,6 @@ const LibroCard = ({ libro }) => {
   const socketRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
-  // Desestructuramos, manejando id_firestore (del backend) o id tradicional
   const {
     id,
     vendedor_id,
@@ -38,24 +39,19 @@ const LibroCard = ({ libro }) => {
     scrollToBottom();
   }, [mensajes]);
 
-  // Lógica para inicializar el chat cuando se abre
   useEffect(() => {
     if (chatAbierto && usuarioActual) {
-      // Conectar al backend 
       socketRef.current = io(API_URL.replace('/api', ''));
 
-      // Solicitar unirse a la sala
       socketRef.current.emit("unirse-sala", {
-        libroId: id, // Usamos la variable 'id' desestructurada directamente
+        libroId: id, 
         compradorId: usuarioActual.uid
       });
 
-      // 1. NUEVO: Recibir todo el historial de la base de datos
       socketRef.current.on("historial-cargado", (historial) => {
         setMensajes(historial);
       });
 
-      // 2. Recibir nuevos mensajes en tiempo real
       socketRef.current.on("nuevo-mensaje", (mensaje) => {
         setMensajes((prev) => [...prev, mensaje]);
       });
@@ -149,7 +145,7 @@ const LibroCard = ({ libro }) => {
 
       if (res.ok) {
         alert("✅ Publicación eliminada.");
-        if (onEliminar) onEliminar(id); // Actualiza el estado en ListaLibros
+        if (onEliminar) onEliminar(id); 
       } else {
         const data = await res.json();
         alert(`❌ Error: ${data.mensaje || "No se pudo eliminar"}`);
@@ -166,10 +162,7 @@ const LibroCard = ({ libro }) => {
     }
 
     try {
-      // Usamos el nombre del usuario logueado en Firebase o un valor por defecto
       const studentName = usuarioActual.displayName || "Estudiante";
-
-      // El carrito solo contiene el libro actual
       const cart = [{ id: id, quantity: 1 }];
 
       const res = await fetch(
@@ -185,7 +178,6 @@ const LibroCard = ({ libro }) => {
       );
 
       const text = await res.text();
-
       let data;
       try {
         data = JSON.parse(text);
@@ -206,20 +198,17 @@ const LibroCard = ({ libro }) => {
 
   const formatearFecha = (timestamp) => {
     if (!timestamp) return '';
-    // Si el backend envía el objeto Timestamp estructurado o un string ISO
     const fecha = timestamp.seconds ? new Date(timestamp.seconds * 1000) : new Date(timestamp);
     return isNaN(fecha) ? '' : fecha.toLocaleDateString('es-EC', { year: 'numeric', month: 'short', day: 'numeric' });
   };
 
-
-
   return (
-    <div style={{ position: 'relative', display: 'flex' }}>
+    <div className="libro-card-wrapper">
 
-      <div className="libro-card" style={{ opacity: disponibilidad ? 1 : 0.6, position: 'relative', width: '100%', zIndex: 1 }}>
+      <div className="libro-card" style={{ opacity: disponibilidad ? 1 : 0.6 }}>
 
         {!disponibilidad && (
-          <div style={{ position: 'absolute', top: 10, right: 10, background: 'red', color: 'white', padding: '5px 10px', borderRadius: '5px', fontWeight: 'bold', zIndex: 10 }}>
+          <div className="libro-badge-vendido">
             VENDIDO
           </div>
         )}
@@ -247,10 +236,7 @@ const LibroCard = ({ libro }) => {
               className="badge-estado"
               style={{
                 backgroundColor: estado_fisico ? '#27ae60' : '#f39c12',
-                color: 'white',
-                padding: '4px 8px',
-                borderRadius: '4px',
-                fontSize: '0.85rem'
+                color: 'white'
               }}
             >
               {estado_fisico ? "Buen estado físico" : "Usado / Con detalles"}
@@ -263,35 +249,20 @@ const LibroCard = ({ libro }) => {
             )}
           </div>
 
-          <div className="libro-footer" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '15px' }}>
+          <div className="libro-footer">
             <small className="libro-fecha">Publicado: {formatearFecha(fecha_publicacion)}</small>
 
             <div style={{ display: 'flex', gap: '8px' }}>
               {usuarioActual && usuarioActual.uid === vendedor_id ? (
-                <button
-                  onClick={handleEliminar}
-                  style={{
-                    backgroundColor: '#dc3545', color: 'white', border: 'none',
-                    padding: '6px 10px', borderRadius: '4px', cursor: 'pointer',
-                    fontWeight: 'bold', fontSize: '0.85rem'
-                  }}
-                >
+                <button onClick={handleEliminar} className="libro-btn-eliminar">
                   🗑️ Eliminar
                 </button>
               ) : (
-                <button
-                  onClick={handleReport}
-                  style={{
-                    backgroundColor: '#f39c12', color: 'white', border: 'none',
-                    padding: '6px 10px', borderRadius: '4px', cursor: 'pointer',
-                    fontWeight: 'bold', fontSize: '0.85rem'
-                  }}
-                >
+                <button onClick={handleReport} className="libro-btn-reportar">
                   ⚠️ Reportar
                 </button>
               )}
 
-              {/* 👈 NUEVO: Botón que alterna la visibilidad del panel en vez de redirigir */}
               <button
                 className="btn-ver-mas"
                 onClick={() => setMostrarDetalles(!mostrarDetalles)}
@@ -302,45 +273,23 @@ const LibroCard = ({ libro }) => {
           </div>
         </div>
       </div>
+
       {mostrarDetalles && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '0',
-            left: '100%',
-            marginLeft: '15px',
-            width: '280px',
-            height: '100%',
-            backgroundColor: '#ffffff',
-            border: '1px solid #e0e0e0',
-            borderRadius: '12px',
-            boxShadow: '0 8px 16px rgba(0,0,0,0.15)',
-            padding: '20px',
-            zIndex: 100,
-            display: 'flex',
-            flexDirection: 'column',
-            justifyContent: 'space-between'
-          }}
-        >
+        <div className="libro-panel-detalles">
           {chatAbierto ? (
-            /* =========================================
-               VISTA 1: INTERFAZ DEL CHAT EN VIVO
-               ========================================= */
-            <div style={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
-              {/* Cabecera del chat */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #f0f0f0', paddingBottom: '10px', marginBottom: '10px' }}>
-                <h4 style={{ margin: 0, color: '#333' }}>Chat con Vendedor</h4>
+            <div className="chat-contenedor">
+              <div className="chat-header">
+                <h4>Chat con Vendedor</h4>
                 <button
                   onClick={() => setChatAbierto(false)}
-                  style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem', color: '#888' }}
+                  className="chat-btn-cerrar"
                   title="Volver a detalles"
                 >
                   ✖
                 </button>
               </div>
 
-              {/* Contenedor de mensajes */}
-              <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '5px', marginBottom: '10px' }}>
+              <div className="chat-mensajes-area">
                 {mensajes.length === 0 ? (
                   <p style={{ fontSize: '0.85rem', color: '#aaa', textAlign: 'center', marginTop: '20px' }}>
                     Escribe un mensaje para consultar sobre este libro...
@@ -349,102 +298,50 @@ const LibroCard = ({ libro }) => {
                   mensajes.map((msg, index) => {
                     const esMio = msg.remitente === usuarioActual?.uid;
                     return (
-                      <div key={index} style={{
-                        alignSelf: esMio ? 'flex-end' : 'flex-start',
-                        backgroundColor: esMio ? '#0d6efd' : '#f1f3f5',
-                        color: esMio ? 'white' : '#333',
-                        padding: '8px 12px',
-                        borderRadius: '12px',
-                        maxWidth: '85%',
-                        fontSize: '0.85rem',
-                        boxShadow: '0 1px 2px rgba(0,0,0,0.1)'
-                      }}>
-                        <span style={{ display: 'block', wordWrap: 'break-word' }}>{msg.texto}</span>
-                        <small style={{ fontSize: '0.65rem', opacity: 0.7, textAlign: esMio ? 'right' : 'left', display: 'block', marginTop: '4px' }}>
-                          {msg.hora}
-                        </small>
+                      <div 
+                        key={index} 
+                        className={`chat-burbuja ${esMio ? 'propio' : 'externo'}`}
+                      >
+                        <span>{msg.texto}</span>
+                        <small>{msg.hora}</small>
                       </div>
                     );
                   })
                 )}
-
-                {/* 👈 NUEVO: El div invisible que sirve como ancla para el scroll */}
                 <div ref={mensajesEndRef} />
-
               </div>
 
-              {/* Input y botón de enviar */}
-              <div style={{ display: 'flex', gap: '5px' }}>
+              <div className="chat-footer">
                 <input
                   type="text"
                   value={nuevoMensaje}
                   onChange={(e) => setNuevoMensaje(e.target.value)}
                   onKeyPress={(e) => e.key === 'Enter' && enviarMensajeChat()}
                   placeholder="Escribe aquí..."
-                  style={{ flex: 1, padding: '10px', borderRadius: '8px', border: '1px solid #ddd', fontSize: '0.85rem', outline: 'none' }}
+                  className="chat-input"
                 />
-                <button
-                  onClick={enviarMensajeChat}
-                  style={{ backgroundColor: '#0d6efd', color: 'white', border: 'none', padding: '0 15px', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
+                <button onClick={enviarMensajeChat} className="chat-btn-enviar">
                   ➤
                 </button>
               </div>
             </div>
           ) : (
-            /* =========================================
-               VISTA 2: DETALLES DEL LIBRO Y BOTONES
-               ========================================= */
             <>
               <div>
-                <h4 style={{ margin: '0 0 10px 0', borderBottom: '2px solid #f0f0f0', paddingBottom: '8px', color: '#333' }}>
+                <h4 className="detalles-descripcion-titulo">
                   Descripción del Vendedor
                 </h4>
-                <p style={{ fontSize: '0.95rem', color: '#555', lineHeight: '1.5', overflowY: 'auto', maxHeight: '250px' }}>
+                <p className="detalles-descripcion-texto">
                   {descripcion || "El vendedor no proporcionó una descripción adicional para este libro."}
                 </p>
               </div>
 
-              <div style={{ display: 'flex', gap: '10px', marginTop: '15px' }}>
-                <button
-                  onClick={() => setChatAbierto(true)}
-                  style={{
-                    flex: 1,
-                    backgroundColor: '#0d6efd',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '5px'
-                  }}
-                >
+              <div className="detalles-footer-acciones">
+                <button onClick={() => setChatAbierto(true)} className="btn-accion-chat">
                   💬 Chat
                 </button>
 
-                <button
-                  onClick={handleComprar}
-                  style={{
-                    flex: 1,
-                    backgroundColor: '#635bff',
-                    color: 'white',
-                    border: 'none',
-                    padding: '12px',
-                    borderRadius: '6px',
-                    cursor: 'pointer',
-                    fontWeight: 'bold',
-                    fontSize: '0.9rem',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    gap: '5px'
-                  }}
-                >
+                <button onClick={handleComprar} className="btn-accion-comprar">
                   💳 Comprar
                 </button>
               </div>

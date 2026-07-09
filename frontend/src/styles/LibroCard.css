@@ -1,85 +1,122 @@
-.libro-card {
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
-  overflow: hidden;
+/* src/styles/LibroCard.css */
+
+:root {
+  --primary-color: #0d6efd;
+  --primary-hover: #0b5ed7;
+  --stripe-color: #635bff;
+  --stripe-hover: #4b43d3;
+  --danger-color: #dc3545;
+  --danger-hover: #bb2d3b;
+  --warning-color: #f39c12;
+  --warning-hover: #d68910;
+  --success-color: #27ae60;
+  --border-color: #e0e0e0;
+  --text-main: #333333;
+  --text-muted: #888888;
+  --bg-chat-alien: #f1f3f5;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 4px;
+}
+
+/* Contenedor Principal Adaptativo */
+.libro-card-wrapper {
   position: relative;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
   display: flex;
-  flex-direction: column;
-  height: 100%;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Tarjeta Base del Libro */
+.libro-card {
+  position: relative;
+  width: 100%;
+  z-index: 1;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  overflow: hidden;
 }
 
 .libro-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
 }
 
-.libro-badge-nivel {
+/* Badge del estado de Disponibilidad */
+.libro-badge-vendido {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background: #007bff;
+  top: 10px;
+  right: 10px;
+  background-color: var(--danger-color);
   color: white;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
+  padding: 5px 10px;
+  border-radius: 5px;
   font-weight: bold;
   z-index: 10;
+  font-size: 0.8rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Elementos Heredados Estilizados */
+.libro-badge-nivel {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  background-color: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 600;
+  z-index: 5;
 }
 
 .libro-imagen-contenedor {
   width: 100%;
   height: 220px;
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
   display: flex;
   justify-content: center;
   align-items: center;
   overflow: hidden;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .libro-imagen {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
+}
+
+.libro-card:hover .libro-imagen {
+  transform: scale(1.03);
 }
 
 .libro-info {
   padding: 16px;
-  display: flex;
-  flex-direction: column;
-  flex-grow: 1;
 }
 
 .libro-header {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
+  align-items: center;
+  margin-bottom: 12px;
 }
 
 .libro-titulo {
-  font-size: 1.1rem;
   margin: 0;
-  color: #333;
-  font-weight: 600;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--text-main);
 }
 
 .libro-precio {
-  font-size: 1.2rem;
-  font-weight: bold;
-  color: #28a745;
-}
-
-.libro-descripcion {
-  font-size: 0.88rem;
-  color: #666;
-  margin: 0 0 16px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: #27ae60;
 }
 
 .libro-detalles {
@@ -89,45 +126,265 @@
   flex-wrap: wrap;
 }
 
-.badge-estado, .badge-codigo {
-  font-size: 0.75rem;
+.badge-estado {
   padding: 4px 8px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
   font-weight: 500;
 }
 
-.estado-nuevo { background: #e2f0d9; color: #385723; }
-.estado-como-nuevo { background: #fff2cc; color: #7f6000; }
-.estado-bueno { background: #fce4d6; color: #c65911; }
-
-.codigo-si { background: #d4edda; color: #155724; }
-.codigo-no { background: #e2e3e5; color: #383d41; }
-
-.libro-footer {
-  margin-top: auto;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-top: 1px solid #eee;
-  padding-top: 12px;
+.badge-codigo {
+  padding: 4px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.8rem;
+  font-weight: 500;
 }
 
-.libro-fecha {
-  color: #999;
-  font-size: 0.75rem;
+.codigo-si {
+  background-color: #e8f5e9;
+  color: var(--success-color);
 }
 
-.btn-ver-mas {
-  background: #333;
+.codigo-no {
+  background-color: #ffebee;
+  color: var(--danger-color);
+}
+
+/* Botones de Acción de la Tarjeta */
+.libro-btn-eliminar {
+  background-color: var(--danger-color);
   color: white;
   border: none;
   padding: 6px 12px;
-  border-radius: 6px;
+  border-radius: var(--radius-sm);
   cursor: pointer;
+  font-weight: 600;
   font-size: 0.85rem;
-  transition: background 0.2s;
+  transition: background-color 0.2s;
 }
 
-.btn-ver-mas:hover {
-  background: #0056b3;
+.libro-btn-eliminar:hover {
+  background-color: var(--danger-hover);
+}
+
+.libro-btn-reportar {
+  background-color: var(--warning-color);
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.85rem;
+  transition: background-color 0.2s;
+}
+
+.libro-btn-reportar:hover {
+  background-color: var(--warning-hover);
+}
+
+/* Panel Desplegable Lateral de Detalles y Chat */
+.libro-panel-detalles {
+  position: absolute;
+  top: 0;
+  left: 100%;
+  margin-left: 15px;
+  width: 290px;
+  height: 100%;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  padding: 20px;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  box-sizing: border-box;
+}
+
+/* Estructura Interna de la Vista de Chat */
+.chat-contenedor {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 2px solid #f8f9fa;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.chat-header h4 {
+  margin: 0;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.chat-btn-cerrar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.chat-btn-cerrar:hover {
+  color: var(--danger-color);
+}
+
+.chat-mensajes-area {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding-right: 5px;
+  margin-bottom: 12px;
+}
+
+/* Burbujas del chat dinámicas */
+.chat-burbuja {
+  padding: 8px 12px;
+  border-radius: var(--radius-lg);
+  max-width: 85%;
+  font-size: 0.85rem;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  line-height: 1.4;
+}
+
+.chat-burbuja.propio {
+  align-self: flex-end;
+  background-color: var(--primary-color);
+  color: white;
+  border-bottom-right-radius: 2px;
+}
+
+.chat-burbuja.externo {
+  align-self: flex-start;
+  background-color: var(--bg-chat-alien);
+  color: var(--text-main);
+  border-bottom-left-radius: 2px;
+}
+
+.chat-burbuja span {
+  display: block;
+  word-wrap: break-word;
+}
+
+.chat-burbuja small {
+  font-size: 0.65rem;
+  opacity: 0.75;
+  display: block;
+  margin-top: 4px;
+}
+
+.chat-burbuja.propio small {
+  text-align: right;
+}
+
+/* Barra de Entrada de Texto */
+.chat-footer {
+  display: flex;
+  gap: 6px;
+}
+
+.chat-input {
+  flex: 1;
+  padding: 10px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.chat-input:focus {
+  border-color: var(--primary-color);
+}
+
+.chat-btn-enviar {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 0 14px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: bold;
+  transition: background-color 0.2s;
+}
+
+.chat-btn-enviar:hover {
+  background-color: var(--primary-hover);
+}
+
+/* Controles de Vista de Detalles de Libro */
+.detalles-descripcion-titulo {
+  margin: 0 0 10px 0;
+  border-bottom: 2px solid #f8f9fa;
+  padding-bottom: 8px;
+  color: var(--text-main);
+  font-weight: 700;
+}
+
+.detalles-descripcion-texto {
+  font-size: 0.9rem;
+  color: #555555;
+  line-height: 1.5;
+  overflow-y: auto;
+  max-height: 230px;
+  margin: 0;
+}
+
+.detalles-footer-acciones {
+  display: flex;
+  gap: 10px;
+  margin-top: 15px;
+}
+
+.btn-accion-chat {
+  flex: 1;
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s;
+}
+
+.btn-accion-chat:hover {
+  background-color: var(--primary-hover);
+}
+
+.btn-accion-comprar {
+  flex: 1;
+  background-color: var(--stripe-color);
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  font-weight: bold;
+  font-size: 0.9rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
+  transition: background-color 0.2s;
+}
+
+.btn-accion-comprar:hover {
+  background-color: var(--stripe-hover);
 }

@@ -1,0 +1,159 @@
+/* src/styles/Sidebar.css */
+
+:root {
+  --sidebar-bg: #1a1a1a;
+  --sidebar-text: #ffffff;
+  --sidebar-muted: #aaaaaa;
+  --sidebar-brand: #f1c40f;
+  --profile-bg: #2d2d2d;
+  --role-admin: #dc3545;
+  --role-student: #28a745;
+  --menu-btn-hover: #2d2d2d;
+  --menu-btn-text-hover: #ffffff;
+}
+
+/* Contenedor Flotante del Sidebar con animación fluida */
+.sidebar-container {
+  width: 260px;
+  height: 100vh;          
+  height: 100dvh;         
+  background-color: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  position: fixed;
+  left: 0;
+  top: 0;
+  box-shadow: 2px 0 15px rgba(0, 0, 0, 0.5); 
+  z-index: 1000;
+  transition: transform 0.3s ease-in-out;
+  box-sizing: border-box;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+/* Botón de cierre "X" */
+.sidebar-btn-close {
+  position: absolute;
+  top: 15px;
+  right: 15px;
+  background: none;
+  border: none;
+  color: var(--sidebar-muted);
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.sidebar-btn-close:hover {
+  color: var(--sidebar-text);
+}
+
+/* Sección superior e Identidad Visual */
+.sidebar-top-section {
+  margin-top: 20px;
+}
+
+.sidebar-brand {
+  color: var(--sidebar-brand);
+  margin-bottom: 30px;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Tarjeta contenedora del Perfil de Usuario */
+.sidebar-profile-card {
+  background-color: var(--profile-bg);
+  padding: 12px;
+  border-radius: 6px;
+  margin-bottom: 20px;
+}
+
+.sidebar-profile-name {
+  margin: 0;
+  font-weight: bold;
+  font-size: 0.95rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sidebar-profile-email {
+  margin: 4px 0 0 0;
+  font-size: 0.8rem;
+  color: var(--sidebar-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Distintivos (Badges) de Rol */
+.sidebar-role-badge {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: bold;
+  color: #fff;
+}
+
+.sidebar-role-badge.admin {
+  background-color: var(--role-admin);
+}
+
+.sidebar-role-badge.estudiante {
+  background-color: var(--role-student);
+}
+
+.sidebar-no-session {
+  color: var(--sidebar-muted);
+  font-size: 0.9rem;
+}
+
+/* Enlaces de Navegación del Menú */
+.sidebar-nav-menu {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.sidebar-menu-btn {
+  width: 100%;
+  padding: 10px;
+  text-align: left;
+  background: none;
+  border: none;
+  color: #ccc;
+  cursor: pointer;
+  font-size: 0.95rem;
+  border-radius: 4px;
+  transition: background 0.2s ease, color 0.2s ease;
+  outline: none;
+}
+
+.sidebar-menu-btn:hover {
+  background-color: var(--menu-btn-hover);
+  color: var(--menu-btn-text-hover);
+}
+
+/* Botón de Cierre de Sesión */
+.sidebar-btn-logout {
+  width: 100%;
+  padding: 12px;
+  background-color: var(--role-admin);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  font-size: 0.95rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: background-color 0.2s ease;
+}
+
+.sidebar-btn-logout:hover {
+  background-color: #bb2d3b;
+}

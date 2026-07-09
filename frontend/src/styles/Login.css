@@ -1,0 +1,258 @@
+.login-page-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  z-index: 9999;
+  background: 
+    radial-gradient(circle at 15% 25%, rgba(22, 160, 133, 0.25) 0%, transparent 45%),
+    radial-gradient(circle at 85% 15%, rgba(52, 152, 219, 0.3) 0%, transparent 50%),
+    radial-gradient(circle at 50% 85%, rgba(44, 62, 80, 0.5) 0%, transparent 60%),
+    linear-gradient(135deg, #091418 0%, #0f2027 100%) !important;
+  
+  padding: 1rem;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+}
+
+.login-card-box {
+  background: #ffffff;
+  width: 100%;
+  max-width: 460px;
+  border-radius: 16px;
+  padding: 2.5rem 2.2rem;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  box-sizing: border-box;
+  position: relative;
+  animation: fadeInDown 0.4s ease-out;
+}
+
+/* Botón Volver a Inicio */
+.btn-back-home {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin-bottom: 1.5rem;
+  display: flex;
+  align-items: center;
+  transition: color 0.2s;
+  padding: 0;
+}
+
+.btn-back-home:hover {
+  color: #16a085;
+}
+
+.login-header {
+  margin-bottom: 1.2rem;
+}
+
+.login-brand {
+  font-size: 2.2rem;
+  font-weight: 800;
+  color: #0f2027;
+  margin: 0;
+  cursor: pointer;
+}
+
+.login-title {
+  font-size: 1.6rem;
+  color: #2c3e50;
+  margin: 0 0 0.5rem 0;
+  font-weight: 700;
+  text-align: center;
+}
+
+.login-subtitle {
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  margin: 0 0 1.5rem 0;
+  text-align: center;
+}
+
+/* Formularios y layouts */
+.login-form-element {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.input-group-layout {
+  width: 100%;
+}
+
+.input-field-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.input-icon {
+  position: absolute;
+  left: 14px;
+  font-size: 1.1rem;
+  color: #95a5a6;
+  pointer-events: none;
+}
+
+/* Cajas de Texto (inputs) */
+.login-input-field {
+  width: 100%;
+  padding: 0.85rem 1rem 0.85rem 2.6rem;
+  font-size: 0.95rem;
+  border: 1px solid #dcdde1;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  color: #2c3e50;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+
+.login-input-field:focus {
+  outline: none;
+  border-color: #16a085;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgba(22, 160, 133, 0.15);
+}
+
+/* Espacio de seguridad a la derecha para inputs con clave (para que el texto no tape el ojo) */
+input[type="password"], 
+input[type="text"].login-input-field {
+  padding-right: 2.8rem;
+}
+
+/* Alineación exacta del botón del mono / ojo */
+.btn-toggle-password {
+  position: absolute;
+  right: 12px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  height: auto;
+  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7f8c8d;
+  z-index: 5;
+  padding: 0;
+  transition: transform 0.1s ease;
+}
+
+.btn-toggle-password:hover {
+  transform: scale(1.1);
+}
+
+/* Quitar el fondo amarillo molesto del autocompletado en Chrome, Edge y Opera */
+.login-input-field:-webkit-autofill,
+.login-input-field:-webkit-autofill:hover, 
+.login-input-field:-webkit-autofill:focus {
+  -webkit-text-fill-color: #2c3e50 !important;
+  box-shadow: 0 0 0px 1000px #f8f9fa inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Botones principales de envío */
+.btn-auth-primary {
+  background: #0f2027;
+  color: #fff;
+  border: none;
+  padding: 0.9rem;
+  font-size: 1rem;
+  font-weight: 700;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s, transform 0.1s;
+  width: 100%;
+  margin-top: 0.5rem;
+}
+
+.btn-auth-primary:hover {
+  background: #16a085;
+}
+
+.btn-auth-primary:active {
+  transform: scale(0.98);
+}
+
+/* Footer de intercambio entre vistas */
+.login-toggle-footer {
+  margin-top: 1rem;
+  border-top: 1px solid #edf2f4;
+  padding-top: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: center;
+}
+
+.btn-auth-link {
+  background: none;
+  border: none;
+  color: #7f8c8d;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  font-family: inherit;
+  padding: 0;
+}
+
+.btn-auth-link:hover {
+  color: #16a085;
+}
+
+.highlight-text {
+  color: #16a085;
+  font-weight: 600;
+}
+
+.font-small {
+  font-size: 0.8rem;
+}
+
+/* Estilos de las alertas de carga y error */
+.auth-status-message {
+  padding: 0.8rem;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  font-weight: 500;
+}
+
+.error-style {
+  background-color: #ffebee;
+  color: #c62828;
+  border-left: 4px solid #e53935;
+}
+
+.success-style {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border-left: 4px solid #4caf50;
+}
+
+.text-center { text-align: center; }
+
+/* Animación de entrada de la caja */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-15px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

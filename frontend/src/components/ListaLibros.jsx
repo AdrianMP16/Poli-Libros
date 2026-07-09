@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import LibroCard from './LibroCard';
-import '../styles/LibroCard.css'; 
-import {API_URL} from '../services/config';
+import '../styles/ListaLibros.css'; 
+import { API_URL } from '../services/config';
 
 const ListaLibros = () => {
   const [libros, setLibros] = useState([]);
@@ -10,7 +10,6 @@ const ListaLibros = () => {
   useEffect(() => {
     const obtenerLibros = async () => {
       try {
-        // Consumimos tu backend estructurado en Express
         const res = await fetch(`${API_URL}/api/libros`);
         if (!res.ok) throw new Error("Error en la respuesta del servidor");
         
@@ -30,22 +29,17 @@ const ListaLibros = () => {
     setLibros((prevLibros) => prevLibros.filter((libro) => libro.id !== idEliminado));
   };
 
-  if (cargando) return <p style={{ textAlign: 'center' }}>Cargando libros disponibles...</p>;
+  if (cargando) return <p className="loading-books-text">Cargando libros disponibles...</p>;
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2 style={{ marginBottom: '20px', color: '#333' }}>Libros Disponibles</h2>
+    <div className="books-list-wrapper">
+      <h2 className="books-list-title">Libros Disponibles</h2>
       
       {libros.length === 0 ? (
-        <p>No hay libros publicados en este momento.</p>
+        <p className="no-books-text">No hay libros publicados en este momento.</p>
       ) : (
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))',
-          gap: '24px'
-        }}>
+        <div className="books-grid-layout">
           {libros.map((libro) => (
-            /* Pasamos el id_firestore o id según cómo venga mapeado del backend */
             <LibroCard key={libro.id_firestore || libro.id} libro={libro} onEliminar={handleEliminarLibro} />
           ))}
         </div>

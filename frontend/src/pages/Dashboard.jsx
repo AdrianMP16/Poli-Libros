@@ -3,14 +3,12 @@ import ListaLibros from '../components/ListaLibros';
 import { auth, actualizarDatosPerfil, cambiarContrasenaInterna } from '../services/authService';
 import Sidebar from '../components/Sidebar';
 import { API_URL } from '../services/config';
+import '../styles/Dashboard.css';
 
 const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
-
   const [esAdmin, setEsAdmin] = useState(false);
-
   const [pestana, setPestana] = useState('ventas');
   const [sidebarAbierto, setSidebarAbierto] = useState(false);
-
 
   const [formData, setFormData] = useState({
     nivel: 'Begginer', descripcion: '', precio: '', incluye_codigo: false, estado_fisico: ''
@@ -18,7 +16,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   const [perfilData, setPerfilData] = useState({ nombre: auth.currentUser?.displayName || '', telefono: '' });
   const [passwordData, setPasswordData] = useState({ nueva: '', confirmar: '' });
   const [misReportes, setMisReportes] = useState([]);
-
 
   const [mensajePerfil, setMensajePerfil] = useState('');
   const [mensajePassword, setMensajePassword] = useState('');
@@ -31,7 +28,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
   useEffect(() => {
     const cargarMisReportes = async () => {
-      // Solo cargamos si estamos en la pestaña de reportes
       if (pestana === 'reportes' && auth.currentUser) {
         try {
           const token = await auth.currentUser.getIdToken();
@@ -55,9 +51,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
   useEffect(() => {
     const verificarRol = async () => {
       if (auth.currentUser) {
-        // Obtenemos el token actualizado y revisamos sus "claims"
         const idTokenResult = await auth.currentUser.getIdTokenResult();
-        // Si el claim 'admin' existe y es true, actualizamos el estado
         if (idTokenResult.claims.admin) {
           setEsAdmin(true);
         }
@@ -71,8 +65,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
       if (auth.currentUser && pestana === 'perfil') {
         try {
           const token = await auth.currentUser.getIdToken();
-
-          // Hacemos la petición a nuestra API en lugar de ir a Firestore directamente
           const res = await fetch(`${API_URL}/api/usuarios/${auth.currentUser.uid}`, {
             headers: { "Authorization": `Bearer ${token}` }
           });
@@ -81,7 +73,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
             const datos = await res.json();
             setPerfilData({
               nombre: auth.currentUser.displayName || '',
-              telefono: datos.telefono || '' // Tomamos el teléfono de la respuesta de tu API
+              telefono: datos.telefono || ''
             });
           }
         } catch (error) {
@@ -121,7 +113,7 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     setSubiendo(true);
 
     const formDataToSend = new FormData();
-    formDataToSend.append("nivel", formData.nivel); // El nivel ahora es el "título"
+    formDataToSend.append("nivel", formData.nivel);
     formDataToSend.append("descripcion", formData.descripcion);
     formDataToSend.append("precio", formData.precio);
     formDataToSend.append("incluye_codigo", formData.incluye_codigo);
@@ -173,164 +165,224 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     }
   };
 
-  const misLibrosActivos = libros.filter(l => l.vendedor_id === auth.currentUser?.uid && l.disponibilidad !== false);
-  const misLibrosVendidos = libros.filter(l => l.vendedor_id === auth.currentUser?.uid && l.disponibilidad === false);
-
-
   return (
-    <div style={{ display: 'flex' }}>
+    <div className="dashboard-wrapper">
+      
+      {/* Componente Sidebar */}
       <Sidebar user={auth.currentUser} esAdmin={esAdmin} isOpen={sidebarAbierto} onClose={() => setSidebarAbierto(false)} />
 
-      <div style={{ maxWidth: '1000px', margin: '2rem auto', padding: '0 1rem', fontFamily: 'sans-serif' }}>
-        <button
-          onClick={() => setSidebarAbierto(true)}
-          style={{
-            background: '#0f2027',
-            color: '#fff',
-            border: 'none',
-            padding: '10px 15px',
-            borderRadius: '4px',
-            cursor: 'pointer',
-            marginBottom: '20px',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '8px',
-            fontWeight: 'bold'
-          }}
-        >
-          ☰ Abrir Menú
-        </button>
-        <h2 style={{ color: '#0f2027' }}>Panel de Control</h2>
-        <p style={{ color: '#666' }}>Bienvenido, {auth.currentUser?.displayName || auth.currentUser?.email}</p>
-
-        {/* MENÚ DE PESTAÑAS */}
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '20px', borderBottom: '2px solid #ccc', paddingBottom: '10px' }}>
-          <button onClick={() => setPestana('ventas')} style={{ padding: '10px', background: pestana === 'ventas' ? '#0f2027' : '#eee', color: pestana === 'ventas' ? '#fff' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Mis Publicaciones</button>
-          <button onClick={() => setPestana('perfil')} style={{ padding: '10px', background: pestana === 'perfil' ? '#0f2027' : '#eee', color: pestana === 'perfil' ? '#fff' : '#333', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Mi Perfil</button>
+      {/* Contenedor dinámico principal */}
+      <div className={`dashboard-main-content ${sidebarAbierto ? 'sidebar-open' : 'sidebar-closed'}`}>
+        
+        {/* ENLACE PARA REGRESAR A LA LANDING PAGE */}
+        <div className="back-link-container">
+          <a href="/" className="btn-back-landing">
+            ← Volver al Inicio (PoliLibros)
+          </a>
         </div>
 
-        {/* CONTENIDO DE PESTAÑAS */}
-        {pestana === 'ventas' && (
-          <div>
-            <h3 style={{ borderBottom: '2px solid #0f2027', paddingBottom: '10px', color: '#0f2027' }}>Publicar un Nuevo Libro</h3>
+        {/* BOTÓN CONTROLADOR DEL MENÚ */}
+        <button onClick={() => setSidebarAbierto(!sidebarAbierto)} className="btn-menu-toggle">
+          {sidebarAbierto ? '✕ Cerrar Menú' : '☰ Abrir Menú'}
+        </button>
 
-            <form onSubmit={handleSubmitLibro} style={{ display: 'flex', flexDirection: 'column', gap: '15px', background: '#fff', padding: '2rem', borderRadius: '8px', boxShadow: '0 2px 5px rgba(0,0,0,0.1)', marginBottom: '2rem' }}>
+        <div className="dashboard-inner-container">
+          <h2 className="dashboard-title">Panel de Control</h2>
+          <p className="dashboard-welcome">Bienvenido, {auth.currentUser?.displayName || auth.currentUser?.email}</p>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
+          {/* MENÚ DE PESTAÑAS */}
+          <div className="dashboard-tabs-nav">
+            <button 
+              onClick={() => setPestana('ventas')}
+              className={`dashboard-tab-btn ${pestana === 'ventas' ? 'active-tab' : 'inactive-tab'}`}
+            >
+              Mis Publicaciones
+            </button>
+            <button 
+              onClick={() => setPestana('perfil')}
+              className={`dashboard-tab-btn ${pestana === 'perfil' ? 'active-tab' : 'inactive-tab'}`}
+            >
+              Mi Perfil
+            </button>
+          </div>
 
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
-                  Precio ($) *
-                  <input type="number" step="0.01" value={formData.precio} onChange={(e) => setFormData({ ...formData, precio: e.target.value })} required style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }} placeholder="Ej: 15.50" />
-                </label>
-              </div>
+          {/* CONTENIDO DE PESTAÑAS */}
+          {pestana === 'ventas' && (
+            <div>
+              <h3 className="section-subtitle yellow-border">Publicar un Nuevo Libro</h3>
 
-              <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
-                Descripción
-                <textarea value={formData.descripcion} onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', minHeight: '80px', fontWeight: 'normal', fontFamily: 'inherit' }} placeholder="Detalla si tiene rayones, páginas dobladas, etc." />
-              </label>
+              <form onSubmit={handleSubmitLibro} className="dashboard-form-card light-theme">
+                <div className="form-grid-two-cols">
+                  <label className="form-field-label text-dark">
+                    Precio ($) *
+                    <input 
+                      type="number" 
+                      step="0.01" 
+                      value={formData.precio} 
+                      onChange={(e) => setFormData({ ...formData, precio: e.target.value })} 
+                      required 
+                      className="form-input-text font-normal" 
+                      placeholder="Ej: 15.50" 
+                    />
+                  </label>
+                </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '15px', alignItems: 'center' }}>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
-                  Nivel
-                  <select value={formData.nivel} onChange={(e) => setFormData({ ...formData, nivel: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
-                    <option value="Begginer">Begginer</option>
-                    <option value="Basico 1">Básico 1</option>
-                    <option value="Basico 2">Básico 2</option>
-                    <option value="Intermedio 1">Intermedio 1</option>
-                    <option value="Intermedio 2">Intermedio 2</option>
-                    <option value="Avanzado 1">Avanzado 1</option>
-                    <option value="Avanzado 2">Avanzado 2</option>
-                    <option value="Academico 1">Académico 1</option>
-                    <option value="Academico 2">Académico 2</option>
-                    <option value="Academico 3">Académico 3</option>
-                    <option value="Academico 4">Académico 4</option>
-                  </select>
-                </label>
-
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
-                  Estado
-                  <select value={formData.estado_fisico} onChange={(e) => setFormData({ ...formData, estado_fisico: e.target.value })} style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}>
-                    <option value="Usado">Con marcas de esfero o sellos</option>
-                    <option value="Usado 2">Con apuntes en lápiz</option>
-                  </select>
-                </label>
-
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '5px', fontWeight: 'bold', color: '#333' }}>
-                  Foto del Libro *
-                  <input
-                    id="file-input-libro"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => setImagen(e.target.files[0])}
-                    required
-                    style={{ padding: '10px', borderRadius: '4px', border: '1px solid #ccc', fontWeight: 'normal' }}
+                <label className="form-field-label text-dark">
+                  Descripción
+                  <textarea 
+                    value={formData.descripcion} 
+                    onChange={(e) => setFormData({ ...formData, descripcion: e.target.value })} 
+                    className="form-textarea font-normal" 
+                    placeholder="Detalla si tiene rayones, páginas dobladas, etc." 
                   />
                 </label>
 
-                <label style={{ display: 'flex', alignItems: 'center', gap: '10px', fontWeight: 'bold', cursor: 'pointer', marginTop: '20px', color: '#333' }}>
-                  <input type="checkbox" checked={formData.incluye_codigo} onChange={(e) => setFormData({ ...formData, incluye_codigo: e.target.checked })} style={{ width: '18px', height: '18px', cursor: 'pointer' }} />
-                  Incluye código web
-                </label>
+                <div className="form-responsive-grid">
+                  <label className="form-field-label text-dark">
+                    Nivel
+                    <select 
+                      value={formData.nivel} 
+                      onChange={(e) => setFormData({ ...formData, nivel: e.target.value })} 
+                      className="form-select font-normal"
+                    >
+                      <option value="Begginer">Begginer</option>
+                      <option value="Basico 1">Básico 1</option>
+                      <option value="Basico 2">Básico 2</option>
+                      <option value="Intermedio 1">Intermedio 1</option>
+                      <option value="Intermedio 2">Intermedio 2</option>
+                      <option value="Avanzado 1">Avanzado 1</option>
+                      <option value="Avanzado 2">Avanzado 2</option>
+                      <option value="Academico 1">Académico 1</option>
+                      <option value="Academico 2">Académico 2</option>
+                      <option value="Academico 3">Académico 3</option>
+                      <option value="Academico 4">Académico 4</option>
+                    </select>
+                  </label>
+
+                  <label className="form-field-label text-dark">
+                    Estado
+                    <select 
+                      value={formData.estado_fisico} 
+                      onChange={(e) => setFormData({ ...formData, estado_fisico: e.target.value })} 
+                      className="form-select font-normal"
+                    >
+                      <option value="Usado">Con marcas de esfero o sellos</option>
+                      <option value="Usado 2">Con apuntes en lápiz</option>
+                    </select>
+                  </label>
+
+                  <label className="form-field-label text-dark">
+                    Foto del Libro *
+                    <input
+                      id="file-input-libro"
+                      type="file"
+                      accept="image/*"
+                      onChange={(e) => setImagen(e.target.files[0])}
+                      required
+                      className="form-input-file font-normal"
+                    />
+                  </label>
+
+                  <label className="form-checkbox-label text-dark">
+                    <input 
+                      type="checkbox" 
+                      checked={formData.incluye_codigo} 
+                      onChange={(e) => setFormData({ ...formData, incluye_codigo: e.target.checked })} 
+                      className="form-checkbox-input" 
+                    />
+                    Incluye código web
+                  </label>
+                </div>
+
+                <button type="submit" disabled={subiendo} className="btn-submit-publish">
+                  {subiendo ? 'Publicando...' : 'Publicar Libro'}
+                </button>
+              </form>
+
+              <h3 className="section-subtitle yellow-border mt-2rem">Mis Libros Publicados</h3>
+              <ListaLibros
+                libros={libros.filter(l => l.vendedor_id === auth.currentUser?.uid)}
+                onEliminar={onEliminar}
+                onActualizar={onActualizar}
+                subiendo={subiendo}
+              />
+            </div>
+          )}
+
+          {pestana === 'perfil' && (
+            <div className="profile-grid-container">
+              {/* Información de Contacto */}
+              <div className="profile-card light-theme border-light">
+                <h3 className="profile-card-title dark-text">Información de Contacto</h3>
+                <form onSubmit={handleUpdatePerfil} className="profile-form">
+                  <label className="profile-field-label">
+                    Nombre Completo:
+                    <input 
+                      type="text" 
+                      value={perfilData.nombre} 
+                      onChange={(e) => setPerfilData({ ...perfilData, nombre: e.target.value })} 
+                      required 
+                      className="profile-input-text" 
+                    />
+                  </label>
+                  <label className="profile-field-label">
+                    WhatsApp / Teléfono:
+                    <input 
+                      type="tel" 
+                      placeholder="09XXXXXXXX" 
+                      value={perfilData.telefono} 
+                      onChange={(e) => setPerfilData({ ...perfilData, telefono: e.target.value })} 
+                      required 
+                      className="profile-input-text" 
+                    />
+                  </label>
+                  <button type="submit" className="btn-profile-save">Guardar Cambios</button>
+                  {mensajePerfil && <p className="profile-status-message">{mensajePerfil}</p>}
+                </form>
               </div>
 
-              <button type="submit" style={{ padding: '12px', background: '#f1c40f', color: '#0f2027', border: 'none', borderRadius: '4px', fontWeight: 'bold', fontSize: '1rem', cursor: 'pointer', marginTop: '10px', transition: 'background 0.3s' }}>
-                Publicar Libro
-              </button>
-            </form>
-
-            <h3 style={{ borderBottom: '2px solid #0f2027', paddingBottom: '10px', marginTop: '2rem', color: '#0f2027' }}>Mis Libros Publicados</h3>
-            {/* Renderiza estrictamente los libros que le pertenecen a este usuario */}
-            <ListaLibros
-              libros={libros.filter(l => l.vendedor_id === auth.currentUser?.uid)}
-              onEliminar={onEliminar}
-              onActualizar={onActualizar}
-            />
-          </div>
-        )}
-
-        {pestana === 'perfil' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '2rem' }}>
-            <div style={{ background: '#f9f9f9', padding: '1.5rem', borderRadius: '8px', border: '1px solid #eee' }}>
-              <h3 style={{ marginTop: 0, color: '#0f2027' }}>Información de Contacto</h3>
-              <form onSubmit={handleUpdatePerfil} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  Nombre Completo:
-                  <input type="text" value={perfilData.nombre} onChange={(e) => setPerfilData({ ...perfilData, nombre: e.target.value })} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  WhatsApp / Teléfono:
-                  <input type="tel" placeholder="09XXXXXXXX" value={perfilData.telefono} onChange={(e) => setPerfilData({ ...perfilData, telefono: e.target.value })} required style={{ padding: '8px', borderRadius: '4px', border: '1px solid #ccc' }} />
-                </label>
-                <button type="submit" style={{ padding: '10px', background: '#16a085', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', marginTop: '5px' }}>Guardar Cambios</button>
-                {mensajePerfil && <p style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>{mensajePerfil}</p>}
-              </form>
+              {/* Seguridad de la Cuenta */}
+              <div className="profile-card dark-theme">
+                <h3 className="profile-card-title teal-text">Seguridad de la Cuenta</h3>
+                <form onSubmit={handleUpdatePassword} className="profile-form">
+                  <label className="profile-field-label">
+                    Nueva Contraseña:
+                    <div className="password-input-group">
+                      <input 
+                        type={verPasswordNueva ? "text" : "password"} 
+                        value={passwordData.nueva} 
+                        onChange={(e) => setPasswordData({ ...passwordData, nueva: e.target.value })} 
+                        required 
+                        className="profile-input-dark" 
+                      />
+                      <button type="button" onClick={() => setVerPasswordNueva(!verPasswordNueva)} className="btn-toggle-pwd">
+                        {verPasswordNueva ? "🙈" : "👁️"}
+                      </button>
+                    </div>
+                  </label>
+                  <label className="profile-field-label">
+                    Confirmar Nueva Contraseña:
+                    <div className="password-input-group">
+                      <input 
+                        type={verPasswordConfirmar ? "text" : "password"} 
+                        value={passwordData.confirmar} 
+                        onChange={(e) => setPasswordData({ ...passwordData, confirmar: e.target.value })} 
+                        required 
+                        className="profile-input-dark" 
+                      />
+                      <button type="button" onClick={() => setVerPasswordConfirmar(!verPasswordConfirmar)} className="btn-toggle-pwd">
+                        {verPasswordConfirmar ? "🙈" : "👁️"}
+                      </button>
+                    </div>
+                  </label>
+                  <button type="submit" className="btn-profile-danger">Cambiar Contraseña</button>
+                  {mensajePassword && <p className="profile-status-message">{mensajePassword}</p>}
+                </form>
+              </div>
             </div>
-
-            <div style={{ background: '#222', color: '#fff', padding: '1.5rem', borderRadius: '8px' }}>
-              <h3 style={{ marginTop: 0, color: '#16a085' }}>Seguridad de la Cuenta</h3>
-              <form onSubmit={handleUpdatePassword} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  Nueva Contraseña:
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <input type={verPasswordNueva ? "text" : "password"} value={passwordData.nueva} onChange={(e) => setPasswordData({ ...passwordData, nueva: e.target.value })} required style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #444', background: '#333', color: '#fff' }} />
-                    <button type="button" onClick={() => setVerPasswordNueva(!verPasswordNueva)} style={{ padding: '8px', background: '#444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{verPasswordNueva ? "🙈" : "👁️"}</button>
-                  </div>
-                </label>
-                <label style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  Confirmar Nueva Contraseña:
-                  <div style={{ display: 'flex', gap: '5px' }}>
-                    <input type={verPasswordConfirmar ? "text" : "password"} value={passwordData.confirmar} onChange={(e) => setPasswordData({ ...passwordData, confirmar: e.target.value })} required style={{ flex: 1, padding: '8px', borderRadius: '4px', border: '1px solid #444', background: '#333', color: '#fff' }} />
-                    <button type="button" onClick={() => setVerPasswordConfirmar(!verPasswordConfirmar)} style={{ padding: '8px', background: '#444', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>{verPasswordConfirmar ? "🙈" : "👁️"}</button>
-                  </div>
-                </label>
-                <button type="submit" style={{ padding: '10px', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '4px', fontWeight: 'bold', cursor: 'pointer', marginTop: '5px' }}>Cambiar Contraseña</button>
-                {mensajePassword && <p style={{ marginTop: '10px', fontWeight: 'bold', fontSize: '0.9rem' }}>{mensajePassword}</p>}
-              </form>
-            </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-
     </div>
   );
 };

@@ -1,0 +1,24 @@
+.loading-books-text {
+  text-align: center;
+  color: #fff;
+}
+
+.books-list-wrapper {
+  padding: 20px 0;
+}
+
+.books-list-title {
+  margin-bottom: 20px;
+  color: inherit;
+  margin-top: 0;
+}
+
+.no-books-text {
+  color: #aaa;
+}
+
+.books-grid-layout {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 24px;
+}

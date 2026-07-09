@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { login, registrar, recuperarPassword } from '../services/authService';
-
+import '../styles/Login.css';
 
 export default function LoginForm() {
   const [vista, setVista] = useState('login');
@@ -15,22 +15,17 @@ export default function LoginForm() {
   const [mensaje, setMensaje] = useState('');
   const navigate = useNavigate();
 
-  const styles = {
-    container: { maxWidth: '400px', margin: '4rem auto', padding: '2rem', borderRadius: '10px', boxShadow: '0 4px 15px rgba(0,0,0,0.1)', background: '#fff', fontFamily: 'sans-serif', position: 'relative' },
-    title: { color: '#0f2027', marginBottom: '0.5rem', textAlign: 'center' },
-    subtitle: { color: '#666', fontSize: '0.9rem', marginBottom: '1.5rem', textAlign: 'center' },
-    input: { width: '100%', padding: '0.8rem', marginBottom: '1rem', borderRadius: '5px', border: '1px solid #ccc', boxSizing: 'border-box' },
-    btnPrimary: { width: '100%', padding: '0.8rem', background: '#0f2027', color: '#fff', border: 'none', borderRadius: '5px', cursor: 'pointer', fontWeight: 'bold', fontSize: '1rem', marginBottom: '0.5rem' },
-    btnLink: { background: 'none', border: 'none', color: '#16a085', cursor: 'pointer', textDecoration: 'underline', fontSize: '0.9rem', display: 'block', margin: '0.5rem auto' },
-    message: { padding: '0.8rem', backgroundColor: '#f4f4f4', borderRadius: '5px', textAlign: 'center', fontSize: '0.9rem', color: '#333', marginTop: '1rem' },
-    btnVolverInicio: { background: 'none', border: 'none', color: '#666', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '5px', fontSize: '0.9rem', marginBottom: '1rem', padding: '0' }
-  };
+  // Estados independientes para controlar la visibilidad de las contraseñas
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const cambiarVista = (nuevaVista) => {
     setVista(nuevaVista);
     setMensaje('');
     setPassword('');
     setConfirmPassword('');
+    setShowPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const manejarLogin = async (e) => {
@@ -39,6 +34,9 @@ export default function LoginForm() {
       setMensaje('Iniciando sesión...');
       await login(email, password); 
       setMensaje('Sesión iniciada correctamente.');
+      setTimeout(() => {
+        navigate('/dashboard');
+      }, 600);
     } catch (error) {
       setMensaje('Error: ' + error.message);
     }
@@ -74,48 +72,230 @@ export default function LoginForm() {
   };
 
   return (
-    <section style={styles.container}>
-      <button type="button" onClick={() => navigate('/')} style={styles.btnVolverInicio}>
-        ⬅ Volver a Inicio
-      </button>
-      
-      {vista === 'login' && (
-        <form onSubmit={manejarLogin}>
-          <h2 style={styles.title}>Iniciar Sesión</h2>
-          <p style={styles.subtitle}>Ingresa a Polilibros para contactar vendedores o publicar tus libros.</p>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@correo.com" style={styles.input} />
-          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña" style={styles.input} />
-          <button type="submit" style={styles.btnPrimary}>Ingresar</button>
-          <button type="button" style={styles.btnLink} onClick={() => cambiarVista('registro')}>¿No tienes cuenta? Regístrate aquí</button>
-          <button type="button" style={styles.btnLink} onClick={() => cambiarVista('recuperar')}>Olvidé mi contraseña</button>
-        </form>
-      )}
+    <div className="login-page-container">
+      <div className="login-card-box">
+        
+        {/* Botón flotante superior para volver */}
+        <button type="button" onClick={() => navigate('/')} className="btn-back-home">
+          ⬅ Volver a Inicio
+        </button>
 
-      {vista === 'registro' && (
-        <form onSubmit={manejarRegistro}>
-          <h2 style={styles.title}>Crear Cuenta</h2>
-          <p style={styles.subtitle}>Regístrate con tus datos reales para coordinar las entregas en la Poli.</p>
-          <input type="text" required value={nombre} onChange={(e) => setNombre(e.target.value)} placeholder="Nombre completo (Ej: Juan Pérez)" style={styles.input} />
-          <input type="tel" required value={telefono} onChange={(e) => setTelefono(e.target.value)} placeholder="Número de teléfono / WhatsApp" style={styles.input} />
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Correo electrónico" style={styles.input} />
-          <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Contraseña (mínimo 6 caracteres)" style={styles.input} />
-          <input type="password" required value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Confirmar contraseña" style={styles.input} />
-          <button type="submit" style={styles.btnPrimary}>Registrarse</button>
-          <button type="button" style={styles.btnLink} onClick={() => cambiarVista('login')}>¿Ya tienes cuenta? Inicia sesión</button>
-        </form>
-      )}
+        {/* Encabezado con la marca */}
+        <div className="login-header text-center">
+          <h2 className="login-brand" onClick={() => navigate('/')}>
+            PoliLibros <span className="brand-emoji">📚</span>
+          </h2>
+        </div>
 
-      {vista === 'recuperar' && (
-        <form onSubmit={manejarRecuperacion}>
-          <h2 style={styles.title}>Recuperar Contraseña</h2>
-          <p style={styles.subtitle}>Escribe tu correo electrónico para enviarte un enlace de acceso.</p>
-          <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)} placeholder="usuario@correo.com" style={styles.input} />
-          <button type="submit" style={styles.btnPrimary}>Enviar enlace de recuperación</button>
-          <button type="button" style={styles.btnLink} onClick={() => cambiarVista('login')}>Volver al inicio de sesión</button>
-        </form>
-      )}
+        {/* Notificaciones dinámicas de estado/error */}
+        {mensaje && (
+          <div className={`auth-status-message ${mensaje.toLowerCase().includes('error') ? 'error-style' : 'success-style'}`}>
+            {mensaje}
+          </div>
+        )}
 
-      {mensaje && <div style={styles.message}>{mensaje}</div>}
-    </section>
+        {/* VISTA 1: INICIAR SESIÓN */}
+        {vista === 'login' && (
+          <form onSubmit={manejarLogin} className="login-form-element">
+            <h2 className="login-title">Iniciar Sesión</h2>
+            <p className="login-subtitle">Ingresa a Polilibros para contactar vendedores o publicar tus libros.</p>
+            
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">✉️</span>
+                <input 
+                  type="email" 
+                  name="email"
+                  autoComplete="email"
+                  required 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="usuario@correo.com" 
+                  className="login-input-field" 
+                />
+              </div>
+            </div>
+
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">🔒</span>
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="password"
+                  autoComplete="current-password"
+                  required 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="Contraseña" 
+                  className="login-input-field" 
+                />
+                <button 
+                  type="button" 
+                  className="btn-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                  title={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                >
+                  {showPassword ? "👁️" : "🙈"}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-auth-primary">Ingresar</button>
+            
+            <div className="login-toggle-footer text-center">
+              <button type="button" className="btn-auth-link" onClick={() => cambiarVista('registro')}>
+                ¿No tienes cuenta? <span className="highlight-text">Regístrate aquí</span>
+              </button>
+              <button type="button" className="btn-auth-link font-small" onClick={() => cambiarVista('recuperar')}>
+                Olvidé mi contraseña
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* VISTA 2: REGISTRO */}
+        {vista === 'registro' && (
+          <form onSubmit={manejarRegistro} className="login-form-element">
+            <h2 className="login-title">Crear Cuenta</h2>
+            <p className="login-subtitle">Regístrate con tus datos reales para coordinar las entregas en la Poli.</p>
+            
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">👤</span>
+                <input 
+                  type="text" 
+                  name="username"
+                  autoComplete="name"
+                  required 
+                  value={nombre} 
+                  onChange={(e) => setNombre(e.target.value)} 
+                  placeholder="Nombre completo (Ej: Juan Pérez)" 
+                  className="login-input-field" 
+                />
+              </div>
+            </div>
+
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">📞</span>
+                <input 
+                  type="tel" 
+                  name="tel"
+                  autoComplete="tel"
+                  required 
+                  value={telefono} 
+                  onChange={(e) => setTelefono(e.target.value)} 
+                  placeholder="Número de teléfono / WhatsApp" 
+                  className="login-input-field" 
+                />
+              </div>
+            </div>
+
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">✉️</span>
+                <input 
+                  type="email" 
+                  name="email"
+                  autoComplete="email"
+                  required 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="Correo electrónico" 
+                  className="login-input-field" 
+                />
+              </div>
+            </div>
+
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">🔒</span>
+                <input 
+                  type={showPassword ? "text" : "password"} 
+                  name="new-password"
+                  autoComplete="new-password"
+                  required 
+                  value={password} 
+                  onChange={(e) => setPassword(e.target.value)} 
+                  placeholder="Contraseña (mínimo 6 caracteres)" 
+                  className="login-input-field" 
+                />
+                <button 
+                  type="button" 
+                  className="btn-toggle-password"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? "👁️" : "🙈"}
+                </button>
+              </div>
+            </div>
+
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">🔒</span>
+                <input 
+                  type={showConfirmPassword ? "text" : "password"} 
+                  name="confirm-password"
+                  autoComplete="new-password"
+                  required 
+                  value={confirmPassword} 
+                  onChange={(e) => setConfirmPassword(e.target.value)} 
+                  placeholder="Confirmar contraseña" 
+                  className="login-input-field" 
+                />
+                <button 
+                  type="button" 
+                  className="btn-toggle-password"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? "👁️" : "🙈"}
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" className="btn-auth-primary">Registrarse</button>
+            
+            <div className="login-toggle-footer text-center">
+              <button type="button" className="btn-auth-link" onClick={() => cambiarVista('login')}>
+                ¿Ya tienes cuenta? <span className="highlight-text">Inicia sesión</span>
+              </button>
+            </div>
+          </form>
+        )}
+
+        {/* VISTA 3: RECUPERACIÓN */}
+        {vista === 'recuperar' && (
+          <form onSubmit={manejarRecuperacion} className="login-form-element">
+            <h2 className="login-title">Recuperar Contraseña</h2>
+            <p className="login-subtitle">Escribe tu correo electrónico para enviarte un enlace de acceso.</p>
+            
+            <div className="input-group-layout">
+              <div className="input-field-wrapper">
+                <span className="input-icon">✉️</span>
+                <input 
+                  type="email" 
+                  name="email"
+                  autoComplete="email"
+                  required 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="usuario@correo.com" 
+                  className="login-input-field" 
+                />
+              </div>
+            </div>
+
+            <button type="submit" className="btn-auth-primary">Enviar enlace de recuperación</button>
+            
+            <div className="login-toggle-footer text-center">
+              <button type="button" className="btn-auth-link" onClick={() => cambiarVista('login')}>
+                Volver al inicio de sesión
+              </button>
+            </div>
+          </form>
+        )}
+
+      </div>
+    </div>
   );
 }
