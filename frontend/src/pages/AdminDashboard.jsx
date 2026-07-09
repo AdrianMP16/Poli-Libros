@@ -74,6 +74,21 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
     cargarUsuariosLocales();
   };
 
+  // NUEVA FUNCIÓN PARA HABILITAR
+  const habilitarUsuario = async (uid) => {
+    const token = await auth.currentUser.getIdToken();
+    await fetch(`${API_URL}/api/usuarios/${uid}/habilitar`, {
+      method: "PUT",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json"
+      },
+      // Enviamos el body vacío como JSON para evitar el error que vimos antes
+      body: JSON.stringify({})
+    });
+    cargarUsuariosLocales();
+  };
+
   const cargarUsuariosLocales = async () => {
     if (auth.currentUser) {
       try {
@@ -424,10 +439,26 @@ const AdminDashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
           <div style={{ background: '#222', color: '#fff', padding: '2rem', borderRadius: '8px' }}>
             <h3>Control de Usuarios (API)</h3>
             {usuarios.map(usuario => (
-              <div key={usuario.uid} style={{ border: '1px solid #444', padding: '1rem', marginBottom: '1rem' }}>
-                <h4>{usuario.nombre || usuario.displayName}</h4>
-                <p>{usuario.email}</p>
-                <button onClick={() => suspenderUsuario(usuario.uid)}>Suspender</button>
+              <div key={usuario.uid} style={{ border: '1px solid #444', padding: '1rem', marginBottom: '1rem', borderRadius: '6px' }}>
+                <h4 style={{ margin: '0 0 5px 0' }}>{usuario.nombre || usuario.displayName}</h4>
+                <p style={{ margin: '0 0 15px 0', color: '#aaa' }}>{usuario.email}</p>
+
+                {/* Contenedor de botones */}
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    onClick={() => suspenderUsuario(usuario.uid)}
+                    style={{ padding: '8px 12px', background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    🚫 Suspender
+                  </button>
+
+                  <button
+                    onClick={() => habilitarUsuario(usuario.uid)}
+                    style={{ padding: '8px 12px', background: '#2ecc71', color: '#fff', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    ✅ Habilitar
+                  </button>
+                </div>
               </div>
             ))}
           </div>
