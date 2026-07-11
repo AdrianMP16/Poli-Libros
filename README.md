@@ -72,6 +72,10 @@ Base de datos en Firebase
 Aplicación en funcionamiento
 <img width="1600" height="866" alt="c9434e8e-5e63-4fea-a7db-b4c088742914" src="https://github.com/user-attachments/assets/8a84965e-41d8-43aa-af59-e38f43a94322" />
 
-**8. Link Permanente de Vercel:**
+**8. Link Permanente de Vercel (Frontend):**
 
-https://poli-libros-six.vercel.app
+https://poli-libros-wine.vercel.app
+
+**9. Link Permanente de Render (Backend):**
+
+https://poli-libros-backend.onrender.com
