@@ -1,3 +1,4 @@
+// src/pages/Landing.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { API_URL } from '../services/config';
@@ -75,7 +76,7 @@ function Landing({ libros = [], user }) {
           <div className="feature-item-box">
             <div className="feature-icon">💰</div>
             <h3>Ahorra Dinero</h3>
-            <p>Consigue los libros originales del CEC a una fraction de su precio de librería.</p>
+            <p>Consigue los libros originales del CEC a una fracción de su precio de librería.</p>
           </div>
           <div className="feature-item-box">
             <div className="feature-icon">🤝</div>
@@ -102,14 +103,18 @@ function Landing({ libros = [], user }) {
             {libros
               .filter(prod => prod.disponibilidad !== false && prod.disponibilidad !== 'vendido')
               .slice(0, 6)
-              .map((prod) => {
+              .map((prod, index) => {
                 const tituloLibro = prod.nivel ? `Libro de Inglés — Nivel ${prod.nivel}` : "Libro de Inglés";
                 const imagenLibro = prod.imagen_url;
                 const estadoLibro = prod.estado_physical || prod.estado_fisico;
                 const tieneCodigo = prod.incluye_codigo;
 
                 return (
-                  <div key={prod.id || prod.id_firestore} className="preview-product-card">
+                  <div 
+                    key={prod.id || prod.id_firestore} 
+                    className="preview-product-card"
+                    style={{ animationDelay: `${index * 0.1}s` }} /* Efecto cascada */
+                  >
                     
                     {/* Contenedor de la Imagen */}
                     <div className="product-card-image-wrapper">
@@ -117,13 +122,18 @@ function Landing({ libros = [], user }) {
                         <img 
                           src={imagenLibro} 
                           alt={`Portada de ${tituloLibro}`} 
-                          className="product-card-img" 
+                          className="product-card-img"
+                          onError={(e) => {
+                            e.target.onerror = null;
+                            e.target.style.display = 'none';
+                            e.target.nextSibling.style.display = 'flex'; // Muestra el placeholder
+                          }}
                         />
-                      ) : (
-                        <div className="product-card-placeholder">
-                          <span>📖</span>
-                        </div>
-                      )}
+                      ) : null}
+                      
+                      <div className="product-card-placeholder" style={{ display: imagenLibro ? 'none' : 'flex' }}>
+                        <span style={{ fontSize: '3rem' }}>📖</span>
+                      </div>
                       
                       {/* Badges Flotantes */}
                       <div className="card-badges-container">
