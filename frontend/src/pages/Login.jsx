@@ -3,6 +3,31 @@ import { useNavigate } from 'react-router-dom';
 import { login, registrar, recuperarPassword } from '../services/authService';
 import '../styles/Login.css';
 
+const traducirErrorFirebase = (errorObjeto) => {
+  const err = String(errorObjeto).toLowerCase();
+
+  if (err.includes('invalid-credential') || err.includes('wrong-password') || err.includes('user-not-found')) {
+    return 'El correo o la contraseña son incorrectos.';
+  }
+  if (err.includes('invalid-email')) {
+    return 'El formato del correo electrónico no es válido.';
+  }
+  if (err.includes('email-already-in-use')) {
+    return 'Este correo ya está registrado en PoliLibros.';
+  }
+  if (err.includes('weak-password')) {
+    return 'La contraseña es demasiado débil (mínimo 6 caracteres).';
+  }
+  if (err.includes('too-many-requests')) {
+    return 'Demasiados intentos fallidos. Por favor, intenta de nuevo más tarde.';
+  }
+  if (err.includes('network-request-failed')) {
+    return 'Error de conexión. Revisa tu internet.';
+  }
+  
+  return 'Ocurrió un error inesperado. Inténtalo de nuevo.';
+};
+
 export default function LoginForm() {
   const [vista, setVista] = useState('login');
   
@@ -38,7 +63,8 @@ export default function LoginForm() {
         navigate('/dashboard');
       }, 600);
     } catch (error) {
-      setMensaje('Error: ' + error.message);
+      const mensajeError = traducirErrorFirebase(error.code || error.message);
+      setMensaje('Error: ' + mensajeError);
     }
   };
 
@@ -56,7 +82,8 @@ export default function LoginForm() {
       alert('¡Registro exitoso! Tu sesión ha sido iniciada.');
       navigate('/dashboard');
     } catch (error) {
-      setMensaje('Error al registrar: ' + error.message);
+      const mensajeError = traducirErrorFirebase(error.code || error.message);
+      setMensaje('Error: ' + mensajeError);
     }
   };
 
@@ -67,7 +94,8 @@ export default function LoginForm() {
       await recuperarPassword(email);
       setMensaje('Se ha enviado un enlace de recuperación a tu correo electrónico.');
     } catch (error) {
-      setMensaje('Error: ' + error.message);
+      const mensajeError = traducirErrorFirebase(error.code || error.message);
+      setMensaje('Error: ' + mensajeError);
     }
   };
 
