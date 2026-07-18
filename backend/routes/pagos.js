@@ -1,7 +1,7 @@
 const express = require("express");
 const Stripe = require("stripe");
 const { verificarAutenticado } = require("../middlewares/authMiddleware");
-const { admin } = require("../config/firebase"); // Asegúrate de exportar admin o db desde este archivo
+const { admin } = require("../config/firebase");
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -101,5 +101,4 @@ const manejarWebhook = async (req, res) => {
     res.json({ received: true });
 };
 
-// Exportamos ambas partes para usarlas en index.js
 module.exports = { router, manejarWebhook };

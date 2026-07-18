@@ -5,9 +5,17 @@ const cors = require("cors");
 const http = require("http");
 const { Server } = require("socket.io");
 
+// IMPORTACIÓN DE RUTAS
+const rutasLibros = require("./routes/libros");
+const rutasReportes = require("./routes/reportes");
+const rutasUsuarios = require("./routes/usuarios");
+const rutasAnuncios = require("./routes/anuncios");
+const rutasPagos = require("./routes/pagos");
+const chatSockets = require("./routes/chat");
+const chatIA = require("./routes/chatIA");
+
 const app = express();
 const PORT = process.env.PORT || 3000;
-
 const server = http.createServer(app);
 
 const io = new Server(server, {
@@ -19,27 +27,20 @@ const io = new Server(server, {
 
 // Middlewares globales
 app.use(cors({
-  origin: ["http://localhost:5173", "https://poli-libros-wine.vercel.app"], // Permite solicitudes desde tu frontend
-  methods: ["GET", "POST", "PUT", "DELETE"], // Permite los métodos HTTP
+  origin: ["http://localhost:5173", "https://poli-libros-wine.vercel.app"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
-app.use(express.json());
 
-// IMPORTACIÓN DE RUTAS
-const rutasLibros = require("./routes/libros");
-const rutasReportes = require("./routes/reportes");
-const rutasUsuarios = require("./routes/usuarios");
-const rutasAnuncios = require("./routes/anuncios");
-const rutasPagos = require("./routes/pagos");
-const chatSockets = require("./routes/chat");
-const chatIA = require("./routes/chatIA");
+app.post("/api/pagos/webhook", express.raw({ type: "application/json" }), rutasPagos.manejarWebhook);
+
+app.use(express.json());
 
 // Inicializar el chat con Socket.IO
 chatSockets(io);
 
-app.post("/api/pagos/webhook",express.raw({ type: "application/json" }),rutasPagos.manejarWebhook);
 app.post("/api/prueba", (req, res) => {
     res.json({ mensaje: "El backend funciona correctamente" });
 });
@@ -52,12 +53,10 @@ app.use("/api/anuncios", rutasAnuncios);
 app.use("/api/pagos", rutasPagos.router);
 app.use("/api/chatIA", chatIA);
 
-// RUTA ADICIONAL PARA SABER QUE ESTÁ ACTIVO EN VEZ DE LANZAR "CANNOT GET"
 app.get("/", (req, res) => {
   res.send("El backend de PoliLibros está activo y escuchando peticiones.");
 });
 
-// Inicio del servidor
 server.listen(PORT, () => {
   console.log(`Servidor y WebSocket corriendo en http://localhost:${PORT}`);
 });
