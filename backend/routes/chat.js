@@ -20,7 +20,13 @@ module.exports = (io) => {
           .orderBy("timestamp", "asc") // Ordenamos del más antiguo al más reciente
           .get();
 
-        const historial = snapshot.docs.map(doc => doc.data());
+        const historial = snapshot.docs.map(doc => {
+          const data = doc.data();
+          return {
+            ...data,
+            timestamp: data.timestamp ? data.timestamp.toDate().toISOString() : new Date().toISOString()
+          };
+        });
         
         // Emitimos el historial SOLO al usuario que se acaba de conectar
         socket.emit("historial-cargado", historial);

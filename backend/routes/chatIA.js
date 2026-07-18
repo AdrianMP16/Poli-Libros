@@ -45,7 +45,7 @@ router.post('/', async (req, res) => {
             temperature: 0.4
         });
 
-        const botReply = response.choices?.[0]?.message?.content || "Lo siento, no pude generar una respuesta.";
+        const botReply = response.choices?.[0]?.message?.content || "Lo siento, no puedo responder a eso, ¿Puedo ayudarte con otra cosa?";
         res.json({ reply: botReply });
 
     } catch (error) {
