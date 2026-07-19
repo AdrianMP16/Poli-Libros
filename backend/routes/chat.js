@@ -8,10 +8,10 @@ module.exports = (io) => {
 
     // Unirse a la sala específica del libro
     // Unirse a la sala específica del libro y cargar el historial
-    socket.on("unirse-sala", async ({ libroId, compradorId }) => {
-      const sala = `chat_${libroId}_${compradorId}`;
+    socket.on("unirse-sala", async ({ sala }) => {
+
       socket.join(sala);
-      console.log(`Usuario ${socket.id} se unió a la sala: ${sala}`);
+      console.log(`Usuario ${socket.id} se unió a la sala universal: ${sala}`);
 
       try {
         // Consultar a Firestore los mensajes de esta sala específica
