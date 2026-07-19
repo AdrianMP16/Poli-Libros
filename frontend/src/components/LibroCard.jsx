@@ -43,11 +43,9 @@ const LibroCard = ({ libro, onEliminar }) => {
     if (chatAbierto && usuarioActual) {
       socketRef.current = io(API_URL.replace('/api', ''));
 
-      const idsOrdenados = [usuarioActual.uid, vendedor_id].sort();
-      const salaUniversal = `chat_${id}_${idsOrdenados[0]}_${idsOrdenados[1]}`;
-
       socketRef.current.emit("unirse-sala", {
-        sala: salaUniversal 
+        libroId: id, 
+        compradorId: usuarioActual.uid
       });
 
       socketRef.current.on("historial-cargado", (historial) => {
@@ -62,16 +60,14 @@ const LibroCard = ({ libro, onEliminar }) => {
         socketRef.current.disconnect();
       };
     }
-  }, [chatAbierto, usuarioActual, id, vendedor_id]);
+  }, [chatAbierto, usuarioActual, id]);
 
   const enviarMensajeChat = () => {
     if (nuevoMensaje.trim() === "") return;
-
-    const idsOrdenados = [usuarioActual.uid, vendedor_id].sort();
-    const salaUniversal = `chat_${id}_${idsOrdenados[0]}_${idsOrdenados[1]}`;
+    const sala = `chat_${libro.id}_${usuarioActual.uid}`;
 
     socketRef.current.emit("enviar-mensaje", {
-      sala: salaUniversal, 
+      sala,
       mensaje: nuevoMensaje,
       remitente: usuarioActual.uid,
       receptorId: vendedor_id,
