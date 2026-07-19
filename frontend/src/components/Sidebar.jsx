@@ -50,12 +50,15 @@ const Sidebar = ({ user, esAdmin, isOpen, onClose }) => {
 
         {/* Menú de Navegación Dinámico */}
         <nav className="sidebar-nav-menu">
-          <button onClick={() => navigate(esAdmin ? '/admin' : '/')} className="sidebar-menu-btn">
+          {/* Inicio siempre lleva al Landing Page */}
+          <button onClick={() => navigate('/')} className="sidebar-menu-btn">
             🏠 Inicio
           </button>
-          {!esAdmin && (
-            <button onClick={() => navigate('/')} className="sidebar-menu-btn">
-              📊 Mi Panel de Estudiante
+
+          {/* Botón dinámico según el rol */}
+          {esAdmin && (
+            <button onClick={() => navigate('/admin')} className="sidebar-menu-btn">
+              ⚙️ Panel de Administración
             </button>
           )}
         </nav>

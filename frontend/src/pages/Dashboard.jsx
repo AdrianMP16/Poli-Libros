@@ -1,7 +1,9 @@
+// src/pages/Dashboard.jsx
 import React, { useState, useEffect } from 'react';
 import ListaLibros from '../components/ListaLibros';
 import { auth, actualizarDatosPerfil, cambiarContrasenaInterna } from '../services/authService';
 import Sidebar from '../components/Sidebar';
+import BandejaMensajes from '../components/BandejaMensajes';
 import { API_URL } from '../services/config';
 import '../styles/Dashboard.css';
 
@@ -173,13 +175,6 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
 
       {/* Contenedor dinámico principal */}
       <div className={`dashboard-main-content ${sidebarAbierto ? 'sidebar-open' : 'sidebar-closed'}`}>
-        
-        {/* ENLACE PARA REGRESAR A LA LANDING PAGE */}
-        <div className="back-link-container">
-          <a href="/" className="btn-back-landing">
-            ← Volver al Inicio (PoliLibros)
-          </a>
-        </div>
 
         {/* BOTÓN CONTROLADOR DEL MENÚ */}
         <button onClick={() => setSidebarAbierto(!sidebarAbierto)} className="btn-menu-toggle">
@@ -203,6 +198,12 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
               className={`dashboard-tab-btn ${pestana === 'perfil' ? 'active-tab' : 'inactive-tab'}`}
             >
               Mi Perfil
+            </button>
+            <button 
+              onClick={() => setPestana('mensajes')}
+              className={`dashboard-tab-btn ${pestana === 'mensajes' ? 'active-tab' : 'inactive-tab'}`}
+            >
+              Mis Mensajes
             </button>
           </div>
 
@@ -381,6 +382,13 @@ const Dashboard = ({ libros, onCrear, onEliminar, onActualizar }) => {
               </div>
             </div>
           )}
+
+          {pestana === 'mensajes' && (
+            <div style={{ marginTop: '20px' }}>
+              <BandejaMensajes libros={libros} />
+            </div>
+          )}
+          
         </div>
       </div>
     </div>
