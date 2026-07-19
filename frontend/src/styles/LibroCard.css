@@ -1,29 +1,27 @@
 /* src/styles/LibroCard.css */
 
 :root {
-  --primary-color: #0d6efd;
-  --primary-hover: #0b5ed7;
-  --stripe-color: #635bff;
-  --stripe-hover: #4b43d3;
-  --danger-color: #dc3545;
-  --danger-hover: #bb2d3b;
+  --primary-color: #f1c40f;
+  --primary-hover: #f39c12;
+  --danger-color: #e74c3c;
+  --danger-hover: #c0392b;
   --warning-color: #f39c12;
   --warning-hover: #d68910;
-  --success-color: #27ae60;
-  --border-color: #e0e0e0;
-  --text-main: #333333;
-  --text-muted: #888888;
-  --bg-chat-alien: #f1f3f5;
-  --radius-lg: 12px;
+  --success-color: #2ecc71;
+  --border-color: rgba(255, 255, 255, 0.08);
+  --text-main: #ffffff;
+  --text-muted: #bdc3c7;
+  --radius-lg: 16px;
   --radius-md: 8px;
-  --radius-sm: 4px;
+  --radius-sm: 6px;
 }
 
-/* Contenedor Principal Adaptativo */
+/* Contenedor Principal Adaptativo con separación externa */
 .libro-card-wrapper {
   position: relative;
   display: flex;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 2px;
 }
 
 /* Tarjeta Base del Libro */
@@ -31,17 +29,19 @@
   position: relative;
   width: 100%;
   z-index: 1;
-  background-color: #ffffff;
+  background: rgba(255, 255, 255, 0.03);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   overflow: hidden;
+  backdrop-filter: blur(10px);
 }
 
 .libro-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+  transform: translateY(-6px);
+  border-color: rgba(241, 196, 15, 0.3);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
 }
 
 /* Badge del estado de Disponibilidad */
@@ -52,31 +52,33 @@
   background-color: var(--danger-color);
   color: white;
   padding: 5px 10px;
-  border-radius: 5px;
-  font-weight: bold;
+  border-radius: 6px;
+  font-weight: 700;
   z-index: 10;
-  font-size: 0.8rem;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  font-size: 0.75rem;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
-/* Elementos Heredados Estilizados */
 .libro-badge-nivel {
   position: absolute;
   top: 10px;
   left: 10px;
-  background-color: rgba(0, 0, 0, 0.7);
-  color: #fff;
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 600;
+  background: rgba(9, 20, 24, 0.9);
+  color: #f1c40f;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
   z-index: 5;
+  border: 1px solid rgba(241, 196, 15, 0.2);
+  text-transform: uppercase;
 }
 
 .libro-imagen-contenedor {
   width: 100%;
   height: 220px;
-  background-color: #f8f9fa;
+  background-color: rgba(0, 0, 0, 0.3);
   display: flex;
   justify-content: center;
   align-items: center;
@@ -85,105 +87,145 @@
 }
 
 .libro-imagen {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  padding: 10px;
+  transition: transform 0.4s ease;
 }
 
 .libro-card:hover .libro-imagen {
-  transform: scale(1.03);
+  transform: scale(1.05);
 }
 
+/* Espaciado interno mejorado para que no se vea amontonado */
 .libro-info {
-  padding: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .libro-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 12px;
 }
 
 .libro-titulo {
   margin: 0;
-  font-size: 1.2rem;
-  font-weight: 700;
+  font-size: 1.15rem;
+  font-weight: 600;
   color: var(--text-main);
+  line-height: 1.4;
 }
 
 .libro-precio {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   font-weight: 800;
-  color: #27ae60;
+  color: var(--success-color);
 }
 
 .libro-detalles {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
   flex-wrap: wrap;
 }
 
 .badge-estado {
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .badge-codigo {
-  padding: 4px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 0.8rem;
-  font-weight: 500;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 700;
 }
 
 .codigo-si {
-  background-color: #e8f5e9;
-  color: var(--success-color);
+  background-color: rgba(22, 160, 133, 0.9);
+  color: #fff;
 }
 
 .codigo-no {
-  background-color: #ffebee;
-  color: var(--danger-color);
+  background-color: rgba(231, 76, 60, 0.9);
+  color: #fff;
+}
+
+/* Pie de tarjeta estructurado y separado */
+.libro-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.libro-fecha {
+  color: var(--text-muted);
+  font-size: 0.75rem;
 }
 
 /* Botones de Acción de la Tarjeta */
 .libro-btn-eliminar {
-  background-color: var(--danger-color);
-  color: white;
-  border: none;
-  padding: 6px 12px;
+  background-color: rgba(231, 76, 60, 0.2);
+  color: #e74c3c;
+  border: 1px solid #e74c3c;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85rem;
-  transition: background-color 0.2s;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
 }
 
 .libro-btn-eliminar:hover {
-  background-color: var(--danger-hover);
+  background-color: #e74c3c;
+  color: white;
 }
 
 .libro-btn-reportar {
-  background-color: var(--warning-color);
-  color: white;
-  border: none;
-  padding: 6px 12px;
+  background-color: rgba(243, 156, 18, 0.2);
+  color: #f39c12;
+  border: 1px solid #f39c12;
+  padding: 6px 10px;
   border-radius: var(--radius-sm);
   cursor: pointer;
   font-weight: 600;
-  font-size: 0.85rem;
-  transition: background-color 0.2s;
+  font-size: 0.75rem;
+  transition: all 0.3s ease;
 }
 
 .libro-btn-reportar:hover {
-  background-color: var(--warning-hover);
+  background-color: #f39c12;
+  color: white;
 }
 
-/* Panel Desplegable Lateral de Detalles y Chat */
+.btn-ver-mas {
+  background: rgba(255, 255, 255, 0.05);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 6px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* Forzamos el color blanco en hover para evitar que se oscurezca */
+.btn-ver-mas:hover {
+  background: rgba(255, 255, 255, 0.15);
+  border-color: #f1c40f;
+  color: #ffffff !important;
+}
+
+/* Panel Desplegable Lateral de Detalles */
 .libro-panel-detalles {
   position: absolute;
   top: 0;
@@ -191,151 +233,32 @@
   margin-left: 15px;
   width: 290px;
   height: 100%;
-  background-color: #ffffff;
-  border: 1px solid var(--border-color);
+  background: #0d1b22;
+  border: 1px solid rgba(241, 196, 15, 0.2);
   border-radius: var(--radius-lg);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
   padding: 20px;
   z-index: 100;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   box-sizing: border-box;
+  backdrop-filter: blur(12px);
 }
 
-/* Estructura Interna de la Vista de Chat */
-.chat-contenedor {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.chat-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  border-bottom: 2px solid #f8f9fa;
-  padding-bottom: 10px;
-  margin-bottom: 10px;
-}
-
-.chat-header h4 {
-  margin: 0;
-  color: var(--text-main);
-  font-weight: 700;
-}
-
-.chat-btn-cerrar {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 1.1rem;
-  color: var(--text-muted);
-  transition: color 0.2s;
-}
-
-.chat-btn-cerrar:hover {
-  color: var(--danger-color);
-}
-
-.chat-mensajes-area {
-  flex: 1;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  padding-right: 5px;
-  margin-bottom: 12px;
-}
-
-/* Burbujas del chat dinámicas */
-.chat-burbuja {
-  padding: 8px 12px;
-  border-radius: var(--radius-lg);
-  max-width: 85%;
-  font-size: 0.85rem;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-  line-height: 1.4;
-}
-
-.chat-burbuja.propio {
-  align-self: flex-end;
-  background-color: var(--primary-color);
-  color: white;
-  border-bottom-right-radius: 2px;
-}
-
-.chat-burbuja.externo {
-  align-self: flex-start;
-  background-color: var(--bg-chat-alien);
-  color: var(--text-main);
-  border-bottom-left-radius: 2px;
-}
-
-.chat-burbuja span {
-  display: block;
-  word-wrap: break-word;
-}
-
-.chat-burbuja small {
-  font-size: 0.65rem;
-  opacity: 0.75;
-  display: block;
-  margin-top: 4px;
-}
-
-.chat-burbuja.propio small {
-  text-align: right;
-}
-
-/* Barra de Entrada de Texto */
-.chat-footer {
-  display: flex;
-  gap: 6px;
-}
-
-.chat-input {
-  flex: 1;
-  padding: 10px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border-color);
-  font-size: 0.85rem;
-  outline: none;
-  transition: border-color 0.2s;
-}
-
-.chat-input:focus {
-  border-color: var(--primary-color);
-}
-
-.chat-btn-enviar {
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 0 14px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: bold;
-  transition: background-color 0.2s;
-}
-
-.chat-btn-enviar:hover {
-  background-color: var(--primary-hover);
-}
-
-/* Controles de Vista de Detalles de Libro */
 .detalles-descripcion-titulo {
   margin: 0 0 10px 0;
-  border-bottom: 2px solid #f8f9fa;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
   padding-bottom: 8px;
-  color: var(--text-main);
+  color: #f1c40f;
   font-weight: 700;
+  font-size: 1rem;
 }
 
 .detalles-descripcion-texto {
   font-size: 0.9rem;
-  color: #555555;
-  line-height: 1.5;
+  color: var(--text-muted);
+  line-height: 1.6;
   overflow-y: auto;
   max-height: 230px;
   margin: 0;
@@ -347,44 +270,25 @@
   margin-top: 15px;
 }
 
-.btn-accion-chat {
-  flex: 1;
-  background-color: var(--primary-color);
-  color: white;
-  border: none;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  cursor: pointer;
-  font-weight: bold;
-  font-size: 0.9rem;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 5px;
-  transition: background-color 0.2s;
-}
-
-.btn-accion-chat:hover {
-  background-color: var(--primary-hover);
-}
-
 .btn-accion-comprar {
-  flex: 1;
-  background-color: var(--stripe-color);
-  color: white;
+  background: #f1c40f;
+  color: #0f2027;
   border: none;
   padding: 12px;
   border-radius: var(--radius-md);
   cursor: pointer;
-  font-weight: bold;
-  font-size: 0.9rem;
+  font-weight: 700;
+  font-size: 0.95rem;
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 5px;
-  transition: background-color 0.2s;
+  gap: 6px;
+  box-shadow: 0 4px 15px rgba(241, 196, 15, 0.2);
+  transition: all 0.3s ease;
 }
 
 .btn-accion-comprar:hover {
-  background-color: var(--stripe-hover);
+  background: #f39c12;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(241, 196, 15, 0.4);
 }

@@ -1,22 +1,14 @@
 // src/components/LibroCard.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { auth } from '../services/authService'; 
 import { API_URL } from '../services/config'; 
 import { useNavigate } from 'react-router-dom'; 
-import { io } from 'socket.io-client';
 import '../styles/LibroCard.css';
 
 const LibroCard = ({ libro, onEliminar }) => {
   const navigate = useNavigate();
   const [usuarioActual, setUsuarioActual] = useState(null);
   const [mostrarDetalles, setMostrarDetalles] = useState(false);
-
-  const [chatAbierto, setChatAbierto] = useState(false);
-  const [mensajes, setMensajes] = useState([]);
-  const [nuevoMensaje, setNuevoMensaje] = useState("");
-
-  const socketRef = useRef(null);
-  const mensajesEndRef = useRef(null);
 
   const {
     id,
@@ -30,51 +22,6 @@ const LibroCard = ({ libro, onEliminar }) => {
     fecha_publicacion,
     disponibilidad
   } = libro;
-
-  const scrollToBottom = () => {
-    mensajesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  };
-
-  useEffect(() => {
-    scrollToBottom();
-  }, [mensajes]);
-
-  useEffect(() => {
-    if (chatAbierto && usuarioActual) {
-      socketRef.current = io(API_URL.replace('/api', ''));
-
-      socketRef.current.emit("unirse-sala", {
-        libroId: id, 
-        compradorId: usuarioActual.uid
-      });
-
-      socketRef.current.on("historial-cargado", (historial) => {
-        setMensajes(historial);
-      });
-
-      socketRef.current.on("nuevo-mensaje", (mensaje) => {
-        setMensajes((prev) => [...prev, mensaje]);
-      });
-
-      return () => {
-        socketRef.current.disconnect();
-      };
-    }
-  }, [chatAbierto, usuarioActual, id]);
-
-  const enviarMensajeChat = () => {
-    if (nuevoMensaje.trim() === "") return;
-    const sala = `chat_${libro.id}_${usuarioActual.uid}`;
-
-    socketRef.current.emit("enviar-mensaje", {
-      sala,
-      mensaje: nuevoMensaje,
-      remitente: usuarioActual.uid,
-      receptorId: vendedor_id,
-      libroId: id,
-    });
-    setNuevoMensaje("");
-  };
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
@@ -112,7 +59,7 @@ const LibroCard = ({ libro, onEliminar }) => {
           bookId: id,
           bookTitle: nivel,
           reason: motivo.trim(),
-          chatHistory: mensajes
+          chatHistory: []
         })
       });
 
@@ -276,77 +223,20 @@ const LibroCard = ({ libro, onEliminar }) => {
 
       {mostrarDetalles && (
         <div className="libro-panel-detalles">
-          {chatAbierto ? (
-            <div className="chat-contenedor">
-              <div className="chat-header">
-                <h4>Chat con Vendedor</h4>
-                <button
-                  onClick={() => setChatAbierto(false)}
-                  className="chat-btn-cerrar"
-                  title="Volver a detalles"
-                >
-                  ✖
-                </button>
-              </div>
+          <div>
+            <h4 className="detalles-descripcion-titulo">
+              Descripción del Vendedor
+            </h4>
+            <p className="detalles-descripcion-texto">
+              {descripcion || "El vendedor no proporcionó una descripción adicional para este libro."}
+            </p>
+          </div>
 
-              <div className="chat-mensajes-area">
-                {mensajes.length === 0 ? (
-                  <p style={{ fontSize: '0.85rem', color: '#aaa', textAlign: 'center', marginTop: '20px' }}>
-                    Escribe un mensaje para consultar sobre este libro...
-                  </p>
-                ) : (
-                  mensajes.map((msg, index) => {
-                    const esMio = msg.remitente === usuarioActual?.uid;
-                    return (
-                      <div 
-                        key={index} 
-                        className={`chat-burbuja ${esMio ? 'propio' : 'externo'}`}
-                      >
-                        <span>{msg.texto}</span>
-                        <small>{msg.hora}</small>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={mensajesEndRef} />
-              </div>
-
-              <div className="chat-footer">
-                <input
-                  type="text"
-                  value={nuevoMensaje}
-                  onChange={(e) => setNuevoMensaje(e.target.value)}
-                  onKeyPress={(e) => e.key === 'Enter' && enviarMensajeChat()}
-                  placeholder="Escribe aquí..."
-                  className="chat-input"
-                />
-                <button onClick={enviarMensajeChat} className="chat-btn-enviar">
-                  ➤
-                </button>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div>
-                <h4 className="detalles-descripcion-titulo">
-                  Descripción del Vendedor
-                </h4>
-                <p className="detalles-descripcion-texto">
-                  {descripcion || "El vendedor no proporcionó una descripción adicional para este libro."}
-                </p>
-              </div>
-
-              <div className="detalles-footer-acciones">
-                <button onClick={() => setChatAbierto(true)} className="btn-accion-chat">
-                  💬 Chat
-                </button>
-
-                <button onClick={handleComprar} className="btn-accion-comprar">
-                  💳 Comprar
-                </button>
-              </div>
-            </>
-          )}
+          <div className="detalles-footer-acciones" style={{ display: 'flex', justifyContent: 'center', marginTop: '15px' }}>
+            <button onClick={handleComprar} className="btn-accion-comprar" style={{ width: '100%' }}>
+              💳 Comprar
+            </button>
+          </div>
         </div>
       )}
 
