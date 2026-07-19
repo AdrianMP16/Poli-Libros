@@ -11,6 +11,7 @@ import AdminDashboard from './pages/AdminDashboard.jsx';
 import Success from "./pages/Success";
 import Cancel from "./pages/Cancel";
 import ChatAssistant from './components/ChatAssistant.jsx';
+import BandejaMensajes from './components/BandejaMensajes.jsx';
 
 function App() {
   const [user, setUser] = useState(null);
@@ -184,6 +185,11 @@ function App() {
         />
         <Route path="/success" element={<Success />} />
         <Route path="/cancel" element={<Cancel />} />
+
+        <Route
+          path="/mensajes"
+          element={user ? <BandejaMensajes /> : <Navigate to="/login" />}
+        />
         
         <Route path="*" element={<Navigate to="/" />} />
       </Routes>

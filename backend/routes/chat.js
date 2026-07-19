@@ -1,23 +1,63 @@
 const { admin } = require("../config/firebase");
 const db = admin.firestore();
 
-// Exportamos una función que recibe la instancia de 'io' desde el index.js
 module.exports = (io) => {
   io.on("connection", (socket) => {
-    console.log("Usuario conectado al chat:", socket.id);
+    console.log("Usuario conectado:", socket.id);
 
-    // Unirse a la sala específica del libro
-    // Unirse a la sala específica del libro y cargar el historial
+    // 1. Obtener la lista de chats para la bandeja
+    socket.on("obtener-mis-chats", async (usuarioId) => {
+      try {
+        const chatsVendedor = await db.collection("chats").where("receptor", "==", usuarioId).get();
+        const chatsComprador = await db.collection("chats").where("remitente", "==", usuarioId).get();
+
+        const conversaciones = new Map();
+
+        const procesarMensajes = (docs) => {
+          docs.forEach(doc => {
+            const data = doc.data();
+            const partesSala = data.sala.split('_');
+            const compradorId = partesSala[2];
+
+            if (!conversaciones.has(data.sala)) {
+              conversaciones.set(data.sala, {
+                sala: data.sala,
+                libroId: data.libroId,
+                compradorId: compradorId,
+                otroUsuarioId: data.remitente === usuarioId ? data.receptor : data.remitente,
+                ultimoMensaje: data.texto,
+                timestamp: data.timestamp ? data.timestamp.toDate().getTime() : 0
+              });
+            } else {
+              const chatExistente = conversaciones.get(data.sala);
+              const msgTime = data.timestamp ? data.timestamp.toDate().getTime() : 0;
+              if (msgTime > chatExistente.timestamp) {
+                chatExistente.ultimoMensaje = data.texto;
+                chatExistente.timestamp = msgTime;
+              }
+            }
+          });
+        };
+
+        procesarMensajes(chatsVendedor.docs);
+        procesarMensajes(chatsComprador.docs);
+
+        const listaChats = Array.from(conversaciones.values()).sort((a, b) => b.timestamp - a.timestamp);
+        socket.emit("mis-chats-cargados", listaChats);
+      } catch (error) {
+        console.error("Error al obtener chats:", error);
+      }
+    });
+
+    // 2. Unirse a una sala específica
     socket.on("unirse-sala", async ({ libroId, compradorId }) => {
       const sala = `chat_${libroId}_${compradorId}`;
       socket.join(sala);
-      console.log(`Usuario ${socket.id} se unió a la sala: ${sala}`);
 
       try {
-        // Consultar a Firestore los mensajes de esta sala específica
         const snapshot = await db.collection("chats")
           .where("sala", "==", sala)
-          .orderBy("timestamp", "asc") // Ordenamos del más antiguo al más reciente
+          .orderBy("timestamp", "asc")
           .get();
 
         const historial = snapshot.docs.map(doc => {
@@ -27,19 +67,15 @@ module.exports = (io) => {
             timestamp: data.timestamp ? data.timestamp.toDate().toISOString() : new Date().toISOString()
           };
         });
-        
-        // Emitimos el historial SOLO al usuario que se acaba de conectar
         socket.emit("historial-cargado", historial);
-
       } catch (error) {
-        console.error("Error al cargar el historial desde Firestore:", error);
+        console.error("Error al cargar historial:", error);
       }
     });
 
-    // Recibir mensaje, guardar en Firestore y emitir a la sala
+    // 3. Enviar mensaje
     socket.on("enviar-mensaje", async (data) => {
       const { sala, mensaje, remitente, receptorId, libroId } = data;
-
       const datosMensaje = {
         texto: mensaje,
         remitente: remitente,
@@ -52,19 +88,11 @@ module.exports = (io) => {
       };
 
       try {
-        // Guardamos en Firebase
         await db.collection("chats").add(datosMensaje);
-
-        // Emitimos a los usuarios de la sala
         io.to(sala).emit("nuevo-mensaje", datosMensaje);
-
       } catch (error) {
-        console.error("Error al guardar el mensaje en Firestore:", error);
+        console.error("Error al guardar mensaje:", error);
       }
-    });
-
-    socket.on("disconnect", () => {
-      console.log("Usuario desconectado del chat:", socket.id);
     });
   });
 };
