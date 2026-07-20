@@ -1,8 +1,8 @@
 // src/components/LibroCard.jsx
 import React, { useState, useEffect } from 'react';
-import { auth } from '../services/authService'; 
-import { API_URL } from '../services/config'; 
-import { useNavigate } from 'react-router-dom'; 
+import { auth } from '../services/authService';
+import { API_URL } from '../services/config';
+import { useNavigate } from 'react-router-dom';
 import '../styles/LibroCard.css';
 
 const LibroCard = ({ libro, onEliminar }) => {
@@ -92,7 +92,7 @@ const LibroCard = ({ libro, onEliminar }) => {
 
       if (res.ok) {
         alert("✅ Publicación eliminada.");
-        if (onEliminar) onEliminar(id); 
+        if (onEliminar) onEliminar(id);
       } else {
         const data = await res.json();
         alert(`❌ Error: ${data.mensaje || "No se pudo eliminar"}`);
@@ -100,6 +100,44 @@ const LibroCard = ({ libro, onEliminar }) => {
     } catch (error) {
       console.error("Error al eliminar:", error);
       alert("Hubo un problema de red al intentar eliminar el libro.");
+    }
+  };
+
+  const handleContactarVendedor = async () => {
+    if (!usuarioActual) {
+      return alert("Debes iniciar sesión para contactar al vendedor.");
+    }
+
+    if (vendedor_id === usuarioActual.uid) {
+      return alert("No puedes iniciar un chat para tu propio libro.");
+    }
+
+    try {
+      // Obtenemos el token tal como lo haces en handleReport y handleComprar
+      const token = await usuarioActual.getIdToken();
+
+      const res = await fetch(`${API_URL}/api/chat/iniciar`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          libroId: id,
+          vendedorId: vendedor_id,
+          compradorId: usuarioActual.uid
+        })
+      });
+
+      if (res.ok) {
+        navigate("/dashboard");
+      } else {
+        const data = await res.json();
+        alert(`❌ Error: ${data.mensaje || "No se pudo iniciar el chat"}`);
+      }
+    } catch (error) {
+      console.error("Error al iniciar la conversación:", error);
+      alert("Hubo un problema de red al conectar con el servidor.");
     }
   };
 
@@ -232,7 +270,10 @@ const LibroCard = ({ libro, onEliminar }) => {
             </p>
           </div>
 
-          <div className="detalles-footer-acciones" style={{ display: 'flex', justifyContent: 'center', marginTop: '15px' }}>
+          <div className="detalles-footer-acciones" style={{ display: 'flex', justifyContent: 'center', marginTop: '15px', gap: '10px' }}>
+            <button onClick={handleContactarVendedor} className="btn-accion-contactar" style={{ width: '100%', backgroundColor: '#f1c40f', color: '#000', border: 'none', borderRadius: '4px', fontWeight: 'bold' }}>
+              💬 Contactar
+            </button>
             <button onClick={handleComprar} className="btn-accion-comprar" style={{ width: '100%' }}>
               💳 Comprar
             </button>

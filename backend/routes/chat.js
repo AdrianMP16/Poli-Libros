@@ -1,12 +1,14 @@
 const { admin } = require("../config/firebase");
 const db = admin.firestore();
 
+
 module.exports = (io) => {
   io.on("connection", (socket) => {
     console.log("Usuario conectado:", socket.id);
 
     // 1. Obtener la lista de chats para la bandeja
     socket.on("obtener-mis-chats", async (usuarioId) => {
+      console.log("=> Intentando buscar chats para el usuario ID:", usuarioId);
       try {
         const chatsVendedor = await db.collection("chats").where("receptor", "==", usuarioId).get();
         const chatsComprador = await db.collection("chats").where("remitente", "==", usuarioId).get();

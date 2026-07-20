@@ -13,6 +13,7 @@ const rutasAnuncios = require("./routes/anuncios");
 const rutasPagos = require("./routes/pagos");
 const chatSockets = require("./routes/chat");
 const chatIA = require("./routes/chatIA");
+const chatRoutes = require("./routes/chatRoutes");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -52,6 +53,7 @@ app.use("/api/usuarios", rutasUsuarios);
 app.use("/api/anuncios", rutasAnuncios);
 app.use("/api/pagos", rutasPagos.router);
 app.use("/api/chatIA", chatIA);
+app.use("/api/chat", chatRoutes);
 
 app.get("/", (req, res) => {
   res.send("El backend de PoliLibros está activo y escuchando peticiones.");
