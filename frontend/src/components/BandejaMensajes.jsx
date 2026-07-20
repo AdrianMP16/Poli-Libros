@@ -10,7 +10,7 @@ export default function BandejaMensajes({ libros = [] }) {
   const [chatActivo, setChatActivo] = useState(null);
   const [mensajes, setMensajes] = useState([]);
   const [nuevoMensaje, setNuevoMensaje] = useState("");
-  
+
   const socketRef = useRef(null);
   const mensajesEndRef = useRef(null);
 
@@ -26,6 +26,13 @@ export default function BandejaMensajes({ libros = [] }) {
   useEffect(() => {
     if (usuarioActual) {
       socketRef.current = io(API_URL.replace('/api', ''));
+      socketRef.current.on("connect", () => {
+        console.log("¡Éxito! Conectado al servidor de chats.");
+      });
+
+      socketRef.current.on("connect_error", (err) => {
+        console.error("Falló la conexión al servidor:", err);
+      });
 
       socketRef.current.emit("obtener-mis-chats", usuarioActual.uid);
 
@@ -37,9 +44,9 @@ export default function BandejaMensajes({ libros = [] }) {
           );
 
           if (libroEncontrado) {
-            return { 
-              ...chat, 
-              tituloLibro: `${libroEncontrado.nivel} - $${libroEncontrado.precio}` 
+            return {
+              ...chat,
+              tituloLibro: `${libroEncontrado.nivel} - $${libroEncontrado.precio}`
             };
           }
 
@@ -69,8 +76,8 @@ export default function BandejaMensajes({ libros = [] }) {
 
   const abrirChat = (chat) => {
     setChatActivo(chat);
-    setMensajes([]); 
-    
+    setMensajes([]);
+
     socketRef.current.emit("unirse-sala", {
       libroId: chat.libroId,
       compradorId: chat.compradorId
@@ -88,7 +95,7 @@ export default function BandejaMensajes({ libros = [] }) {
       receptorId: chatActivo.otroUsuarioId,
       libroId: chatActivo.libroId,
     });
-    
+
     setNuevoMensaje("");
   };
 
@@ -104,8 +111,8 @@ export default function BandejaMensajes({ libros = [] }) {
             <p className="no-chats">No tienes conversaciones aún.</p>
           ) : (
             listaChats.map((chat, index) => (
-              <div 
-                key={index} 
+              <div
+                key={index}
                 className={`chat-item ${chatActivo?.sala === chat.sala ? 'activo' : ''}`}
                 onClick={() => abrirChat(chat)}
               >
